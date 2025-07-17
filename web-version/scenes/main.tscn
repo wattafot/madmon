@@ -1,14 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Texture2D" path="res://assets/levels/environment.png" id="1_2j4k5"]
-[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_3k6l7"]
+[ext_resource type="PackedScene" path="res://scenes/small_town.tscn" id="1_town"]
 
 [node name="Main" type="Node2D"]
 
-[node name="Background" type="Sprite2D" parent="."]
-texture = ExtResource("1_2j4k5")
-centered = false
-
-[node name="Player" parent="." instance=ExtResource("2_3k6l7")]
-position = Vector2(100, 100)
-z_index = 1
+[node name="SmallTown" parent="." instance=ExtResource("1_town")]
