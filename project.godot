@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="madmon"
+config/name="Pokemon-Godot"
 run/main_scene="res://scenes/core/game_manager.tscn"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 config/icon="res://icon.svg"
@@ -22,4 +22,4 @@ SceneManager="*res://scenes/core/scene_manager.tscn"
 
 [dotnet]
 
-project/assembly_name="madmon"
+project/assembly_name="Pokemon-Godot"
