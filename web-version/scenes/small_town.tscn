@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="TileSet" path="res://resources/tilesets/level.tres" id="1_tileset"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/wild_human.tscn" id="3_wild_human"]
+[ext_resource type="PackedScene" path="res://scenes/trainer_benedikt.tscn" id="4_trainer_benedikt"]
+[ext_resource type="PackedScene" path="res://scenes/npc_trainer.tscn" id="5_npc_trainer"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary"]
 size = Vector2(32, 32)
@@ -58,6 +60,14 @@ z_index = 1
 [node name="WildHuman" parent="." instance=ExtResource("3_wild_human")]
 position = Vector2(400, 300)
 z_index = 1
+
+[node name="TrainerBenedikt" parent="." instance=ExtResource("4_trainer_benedikt")]
+position = Vector2(500, 200)
+z_index = 2
+
+[node name="NPCTrainer" parent="." instance=ExtResource("5_npc_trainer")]
+position = Vector2(300, 150)
+z_index = 3
 
 
 
