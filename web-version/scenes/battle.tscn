@@ -51,11 +51,23 @@ anchor_right = 1.0
 anchor_bottom = 0.4
 offset_left = 15.0
 offset_top = 10.0
-offset_right = -15.0
+offset_right = -120.0
 offset_bottom = -10.0
 text = "BOBO    Lv11"
 theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="FoeStatusEffects" type="HBoxContainer" parent="UI/StatusBars/FoeStatusBar"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 0.4
+offset_left = -110.0
+offset_top = 10.0
+offset_right = -15.0
+offset_bottom = -10.0
+theme_override_constants/separation = 3
 
 [node name="FoeHPBar" type="ProgressBar" parent="UI/StatusBars/FoeStatusBar"]
 layout_mode = 1
@@ -100,11 +112,23 @@ anchor_right = 1.0
 anchor_bottom = 0.3
 offset_left = 15.0
 offset_top = 10.0
-offset_right = -15.0
+offset_right = -120.0
 offset_bottom = -10.0
 text = "FRIEDER    Lv9"
 theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="AllyStatusEffects" type="HBoxContainer" parent="UI/StatusBars/AllyStatusBar"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 0.3
+offset_left = -110.0
+offset_top = 10.0
+offset_right = -15.0
+offset_bottom = -10.0
+theme_override_constants/separation = 3
 
 [node name="AllyHPBar" type="ProgressBar" parent="UI/StatusBars/AllyStatusBar"]
 layout_mode = 1
@@ -240,3 +264,221 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "FLUCHT"
 theme_override_font_sizes/font_size = 16
+
+[node name="AttackMenu" type="Panel" parent="UI"]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 520.0
+offset_right = 1180.0
+offset_bottom = 680.0
+visible = false
+modulate = Color(1, 1, 1, 0.95)
+
+[node name="AttackGrid" type="GridContainer" parent="UI/AttackMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+columns = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="Attack1" type="Panel" parent="UI/AttackMenu/AttackGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="HBox" type="HBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack1/VBox"]
+layout_mode = 2
+
+[node name="AttackName" type="Label" parent="UI/AttackMenu/AttackGrid/Attack1/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Bier-Sturz"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="TypeBadge" type="Label" parent="UI/AttackMenu/AttackGrid/Attack1/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "ALKOHOL"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="AttackInfo" type="HBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack1/VBox"]
+layout_mode = 2
+
+[node name="AttackAP" type="Label" parent="UI/AttackMenu/AttackGrid/Attack1/VBox/AttackInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "AP: 15/15"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="PowerIndicator" type="Label" parent="UI/AttackMenu/AttackGrid/Attack1/VBox/AttackInfo"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "★★★"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+
+[node name="Attack2" type="Panel" parent="UI/AttackMenu/AttackGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="HBox" type="HBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack2/VBox"]
+layout_mode = 2
+
+[node name="AttackName" type="Label" parent="UI/AttackMenu/AttackGrid/Attack2/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Lallender Monolog"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="TypeBadge" type="Label" parent="UI/AttackMenu/AttackGrid/Attack2/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "ALKOHOL"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="AttackInfo" type="HBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack2/VBox"]
+layout_mode = 2
+
+[node name="AttackAP" type="Label" parent="UI/AttackMenu/AttackGrid/Attack2/VBox/AttackInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "AP: 10/10"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="PowerIndicator" type="Label" parent="UI/AttackMenu/AttackGrid/Attack2/VBox/AttackInfo"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "★"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+
+[node name="Attack3" type="Panel" parent="UI/AttackMenu/AttackGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="HBox" type="HBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack3/VBox"]
+layout_mode = 2
+
+[node name="AttackName" type="Label" parent="UI/AttackMenu/AttackGrid/Attack3/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Konter-Schlag"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="TypeBadge" type="Label" parent="UI/AttackMenu/AttackGrid/Attack3/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "NORMAL"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="AttackInfo" type="HBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack3/VBox"]
+layout_mode = 2
+
+[node name="AttackAP" type="Label" parent="UI/AttackMenu/AttackGrid/Attack3/VBox/AttackInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "AP: 20/20"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="PowerIndicator" type="Label" parent="UI/AttackMenu/AttackGrid/Attack3/VBox/AttackInfo"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "★★"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+
+[node name="Attack4" type="Panel" parent="UI/AttackMenu/AttackGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="HBox" type="HBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack4/VBox"]
+layout_mode = 2
+
+[node name="AttackName" type="Label" parent="UI/AttackMenu/AttackGrid/Attack4/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Prost!"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="TypeBadge" type="Label" parent="UI/AttackMenu/AttackGrid/Attack4/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "ALKOHOL"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="AttackInfo" type="HBoxContainer" parent="UI/AttackMenu/AttackGrid/Attack4/VBox"]
+layout_mode = 2
+
+[node name="AttackAP" type="Label" parent="UI/AttackMenu/AttackGrid/Attack4/VBox/AttackInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "AP: 5/5"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="PowerIndicator" type="Label" parent="UI/AttackMenu/AttackGrid/Attack4/VBox/AttackInfo"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "★"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)

@@ -28,8 +28,8 @@ func _ready():
 	# Get game state manager
 	game_state_manager = get_node("/root/GameStateManager")
 	
-	print("NPCTrainer: Initialized at position: ", global_position)
-	print("NPCTrainer: Sprite visible: ", $Sprite2D.visible)
+	print("Benedikt der Mitteldicke: Initialized at position: ", global_position)
+	print("Benedikt der Mitteldicke: Sprite visible: ", $Sprite2D.visible)
 
 func _physics_process(delta):
 	if approaching and player_ref:
@@ -67,13 +67,13 @@ func _physics_process(delta):
 			# Set to idle frame
 			sprite.region_rect = sprite_regions[current_direction][0]
 			if game_state_manager:
-				game_state_manager.start_dialogue("Trainer Fritz möchte kämpfen!")
+				_start_benedikt_dialogue()
 
 func _on_detection_area_body_entered(body):
 	if body.name == "Player" and not player_detected:
 		player_detected = true
 		player_ref = body
-		print("NPCTrainer: Player detected!")
+		print("Benedikt der Mitteldicke: Player detected!")
 		
 		# Disable player movement
 		player_ref.set_movement_enabled(false)
@@ -87,3 +87,24 @@ func _on_detection_area_body_entered(body):
 		approaching = true
 		walk_frame = 0
 		walk_timer = 0.0
+
+func _start_benedikt_dialogue():
+	# Die 5-stufige Benedikt-Sequenz
+	var dialogue_lines = [
+		"BENEDIKT: Was bist du denn für ein komisches kleines Vieh? Hat die Anna dich allein gelassen?",
+		"BENEDIKT: Na, für dich hab ich was Schönes. Hör gut zu...",
+		"BENEDIKT: Tüte, Tüte...",
+		"BENEDIKT: ...eine kleine Tüte! Haha!",
+		"BENEDIKT: Ich zeig dir mal, wie wir Menschen das hier regeln! Meine Jungs machen dich fertig!"
+	]
+	
+	# Callback für nach dem Dialog - führt zum Kampf
+	var callback = Callable(self, "_start_battle_transition")
+	
+	game_state_manager.start_multi_dialogue(dialogue_lines, callback)
+
+func _start_battle_transition():
+	print("Benedikt der Mitteldicke fordert heraus!")
+	# Start battle transition with screen wipe effect
+	if game_state_manager:
+		game_state_manager.start_battle_transition()

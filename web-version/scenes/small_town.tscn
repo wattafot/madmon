@@ -65,7 +65,7 @@ z_index = 1
 position = Vector2(500, 200)
 z_index = 2
 
-[node name="NPCTrainer" parent="." instance=ExtResource("5_npc_trainer")]
+[node name="BenediktDerMitteldicke" parent="." instance=ExtResource("5_npc_trainer")]
 position = Vector2(300, 150)
 z_index = 3
 
