@@ -1,0 +1,79 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7k8r5wqn8fth"]
+
+[ext_resource type="Script" path="res://scripts/BattleInventoryCompact.gd" id="1_battle_inv_compact"]
+
+[node name="BattleInventoryCompact" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+visible = false
+script = ExtResource("1_battle_inv_compact")
+
+[node name="CategoryTabs" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 400.0
+offset_bottom = 40.0
+
+[node name="TabMedizin" type="Button" parent="CategoryTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "💊 Medizin"
+
+[node name="TabFanggeraete" type="Button" parent="CategoryTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🎯 Fangen"
+
+[node name="TabBoosts" type="Button" parent="CategoryTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "⚡ Boost"
+
+[node name="BackButton" type="Button" parent="CategoryTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "← Zurück"
+
+[node name="ItemGrid" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 0
+offset_top = 50.0
+offset_right = 400.0
+offset_bottom = 250.0
+columns = 2
+
+[node name="ItemSlot1" type="Button" parent="ItemGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Item 1"
+
+[node name="ItemSlot2" type="Button" parent="ItemGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Item 2"
+
+[node name="ItemSlot3" type="Button" parent="ItemGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Item 3"
+
+[node name="ItemSlot4" type="Button" parent="ItemGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Item 4"
+
+[node name="ItemSlot5" type="Button" parent="ItemGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Item 5"
+
+[node name="ItemSlot6" type="Button" parent="ItemGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Item 6"

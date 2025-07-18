@@ -6,6 +6,7 @@ enum GameState {
 	DIALOGUE,
 	BATTLE_MENU,
 	BATTLE,
+	INVENTORY,
 	PAUSED
 }
 
@@ -28,6 +29,7 @@ var state_change_callbacks = {}
 # UI References
 var dialogue_ui: Control
 var battle_menu: Control
+var inventory_ui: Control
 var player: CharacterBody2D
 
 # Battle menu state
@@ -58,7 +60,22 @@ func _find_ui_elements():
 		battle_menu = main_node.get_node("UI/BattleMenu")
 		player = main_node.get_node("SmallTown/Player")
 		
+		# Create inventory UI if it doesn't exist
+		_setup_inventory_ui()
+		
 		print("GameStateManager initialized with UI elements")
+
+func _setup_inventory_ui():
+	# Create inventory UI if not already created
+	if not inventory_ui:
+		var inventory_scene = preload("res://scenes/inventory.tscn")
+		inventory_ui = inventory_scene.instantiate()
+		get_tree().root.add_child(inventory_ui)
+		
+		# Connect signals
+		inventory_ui.inventory_closed.connect(_on_inventory_closed)
+		
+		print("GameStateManager: Created inventory UI")
 
 func change_state(new_state: GameState):
 	var old_state = current_state
@@ -88,6 +105,8 @@ func _exit_state(state: GameState):
 			_exit_battle_menu()
 		GameState.BATTLE:
 			_exit_battle()
+		GameState.INVENTORY:
+			_exit_inventory()
 
 func _enter_state(state: GameState):
 	match state:
@@ -95,6 +114,8 @@ func _enter_state(state: GameState):
 			_enter_exploring()
 		GameState.DIALOGUE:
 			_enter_dialogue()
+		GameState.INVENTORY:
+			_enter_inventory()
 		GameState.BATTLE_MENU:
 			_enter_battle_menu()
 		GameState.BATTLE:
@@ -248,13 +269,28 @@ func _select_battle_option(option: int):
 			change_state(GameState.BATTLE)
 		1:  # BEUTEL
 			print("Opening bag...")
-			change_state(GameState.EXPLORING)
+			# Let BattleManager handle battle inventory
+			var battle_manager = get_tree().current_scene.get_node_or_null("Battle")
+			if battle_manager and battle_manager.has_method("_on_bag_pressed"):
+				battle_manager._on_bag_pressed()
+			else:
+				change_state(GameState.EXPLORING)
 		2:  # POKÉMON
 			print("Opening Pokemon menu...")
-			change_state(GameState.EXPLORING)
+			# Let BattleManager handle team selection
+			var battle_manager = get_tree().current_scene.get_node_or_null("Battle")
+			if battle_manager and battle_manager.has_method("_on_humans_pressed"):
+				battle_manager._on_humans_pressed()
+			else:
+				change_state(GameState.EXPLORING)
 		3:  # FLUCHT
 			print("Running away...")
-			change_state(GameState.EXPLORING)
+			# Let BattleManager handle escape attempts
+			var battle_manager = get_tree().current_scene.get_node_or_null("Battle")
+			if battle_manager and battle_manager.has_method("_on_run_pressed"):
+				battle_manager._on_run_pressed()
+			else:
+				change_state(GameState.EXPLORING)
 
 # Public API for other scripts
 func start_dialogue(dialogue_text: String):
@@ -311,6 +347,25 @@ func get_current_state() -> GameState:
 
 func get_current_input_context() -> InputContext:
 	return current_input_context
+
+# Inventory system integration
+func open_inventory():
+	if current_state == GameState.EXPLORING:
+		change_state(GameState.INVENTORY)
+
+func _enter_inventory():
+	current_input_context = InputContext.MENU_NAVIGATION
+	if inventory_ui:
+		inventory_ui.open_inventory(false, null)
+
+func _exit_inventory():
+	current_input_context = InputContext.EXPLORATION
+	if inventory_ui:
+		inventory_ui.close_inventory()
+
+func _on_inventory_closed():
+	if current_state == GameState.INVENTORY:
+		change_state(GameState.EXPLORING)
 
 # Battle transition system
 func start_battle_transition():
