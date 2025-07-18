@@ -34,6 +34,11 @@ var player: CharacterBody2D
 var selected_battle_option = 0
 var battle_options = ["KÄMPFEN", "BEUTEL", "POKÉMON", "FLUCHT"]
 
+# Multi-stage dialogue system
+var dialogue_lines: Array = []
+var current_dialogue_index = 0
+var dialogue_callback_func: Callable
+
 signal state_changed(old_state: GameState, new_state: GameState)
 signal input_context_changed(old_context: InputContext, new_context: InputContext)
 
@@ -155,12 +160,25 @@ func _handle_exploration_input(event):
 
 func _handle_dialogue_input(event):
 	if event.is_action_pressed("ui_accept"):
-		# Progress dialogue or transition to battle menu
+		# Progress multi-stage dialogue
 		if current_state == GameState.DIALOGUE:
-			change_state(GameState.BATTLE_MENU)
-	elif event.is_action_pressed("ui_cancel"):
-		# Cancel dialogue and return to exploration
-		change_state(GameState.EXPLORING)
+			if dialogue_lines.size() > 0 and current_dialogue_index < dialogue_lines.size() - 1:
+				# Special handling for dramatic pause in Benedikt dialogue
+				if current_dialogue_index == 2 and dialogue_lines[2].contains("Tüte, Tüte..."):
+					# Add dramatic pause before moving to next line
+					_show_dramatic_pause()
+					return
+				
+				# Move to next dialogue line
+				current_dialogue_index += 1
+				_show_current_dialogue()
+			else:
+				# End dialogue - call callback or go to battle menu
+				if dialogue_callback_func.is_valid():
+					dialogue_callback_func.call()
+				else:
+					change_state(GameState.BATTLE_MENU)
+	# ESC key is disabled during dialogue to prevent accidental exits
 
 func _handle_menu_navigation_input(event):
 	if event.is_action_pressed("ui_right"):
@@ -244,12 +262,46 @@ func start_dialogue(dialogue_text: String):
 		print("Cannot start dialogue - not in exploring state")
 		return
 	
-	if dialogue_ui:
-		dialogue_ui.get_node("Panel/Text").text = dialogue_text
+	# Single dialogue (backward compatibility)
+	dialogue_lines = [dialogue_text]
+	current_dialogue_index = 0
+	dialogue_callback_func = Callable()
+	
+	_show_current_dialogue()
+	change_state(GameState.DIALOGUE)
+
+func start_multi_dialogue(lines: Array, callback: Callable = Callable()):
+	if current_state != GameState.EXPLORING:
+		print("Cannot start dialogue - not in exploring state")
+		return
+	
+	# Multi-stage dialogue
+	dialogue_lines = lines
+	current_dialogue_index = 0
+	dialogue_callback_func = callback
+	
+	_show_current_dialogue()
+	change_state(GameState.DIALOGUE)
+
+func _show_current_dialogue():
+	if dialogue_ui and current_dialogue_index < dialogue_lines.size():
+		dialogue_ui.get_node("Panel/Text").text = dialogue_lines[current_dialogue_index]
 		dialogue_ui.get_node("Panel/Arrow").visible = true
 		dialogue_ui.visible = true
+
+func _show_dramatic_pause():
+	# Show current line with hidden arrow for dramatic effect
+	if dialogue_ui:
+		dialogue_ui.get_node("Panel/Text").text = dialogue_lines[current_dialogue_index]
+		dialogue_ui.get_node("Panel/Arrow").visible = false
+		dialogue_ui.visible = true
 	
-	change_state(GameState.DIALOGUE)
+	# Wait for dramatic pause, then auto-advance
+	await get_tree().create_timer(1.5).timeout
+	
+	# Move to next line automatically
+	current_dialogue_index += 1
+	_show_current_dialogue()
 
 func is_in_dialogue() -> bool:
 	return current_state == GameState.DIALOGUE or current_state == GameState.BATTLE_MENU
@@ -259,3 +311,49 @@ func get_current_state() -> GameState:
 
 func get_current_input_context() -> InputContext:
 	return current_input_context
+
+# Battle transition system
+func start_battle_transition():
+	print("Starting battle transition...")
+	# Stop overworld music (if implemented)
+	
+	# Start transition effect
+	_play_transition_effect()
+
+func _play_transition_effect():
+	# Create spiral/wipe transition effect
+	var overlay = ColorRect.new()
+	overlay.color = Color.BLACK
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
+	# Add to scene tree
+	var main_scene = get_tree().current_scene
+	main_scene.add_child(overlay)
+	
+	# Create spiral wipe effect using a circular mask
+	var center = Vector2(640, 360)  # Screen center
+	var max_radius = 800.0  # Large enough to cover screen
+	
+	# Start with full black screen, then reveal the current scene
+	overlay.modulate.a = 1.0
+	
+	# Wait a moment for dramatic effect
+	await get_tree().create_timer(0.2).timeout
+	
+	# Quick spiral wipe effect - shrink the black overlay
+	var tween = create_tween()
+	tween.set_parallel(true)
+	
+	# Fade out overlay
+	tween.tween_property(overlay, "modulate:a", 0.0, 0.8)
+	
+	# Add rotation for spiral effect
+	tween.tween_property(overlay, "rotation", PI * 2, 0.8)
+	
+	await tween.finished
+	
+	# Brief pause before scene change
+	await get_tree().create_timer(0.1).timeout
+	
+	# Switch to battle scene
+	get_tree().change_scene_to_file("res://scenes/battle.tscn")
