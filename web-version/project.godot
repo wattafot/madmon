@@ -18,6 +18,11 @@ config/features=PackedStringArray("4.4", "GL Compatibility")
 [autoload]
 
 GameStateManager="*res://scripts/GameStateManager.gd"
+DataManager="*res://scripts/DataManager.gd"
+SaveManager="*res://scripts/SaveManager.gd"
+HumanSystem="*res://scripts/HumanSystem.gd"
+AudioManager="*res://scripts/AudioManager.gd"
+UIEnhancements="*res://scripts/UIEnhancements.gd"
 
 [display]
 
