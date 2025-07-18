@@ -24,7 +24,11 @@ AutoSaveManager="*res://scripts/AutoSaveManager.gd"
 KeyboardShortcuts="*res://scripts/KeyboardShortcuts.gd"
 GameStateManager="*res://scripts/GameStateManager.gd"
 InventoryManager="*res://scripts/InventoryManager.gd"
+DataManager="*res://scripts/DataManager.gd"
+SaveManager="*res://scripts/SaveManager.gd"
+HumanSystem="*res://scripts/HumanSystem.gd"
 AudioManager="*res://scripts/AudioManager.gd"
+UIEnhancements="*res://scripts/UIEnhancements.gd"
 
 [display]
 

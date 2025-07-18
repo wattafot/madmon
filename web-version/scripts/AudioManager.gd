@@ -1,374 +1,594 @@
 extends Node
 
-# AudioManager Singleton for Menschenmon
-# Handles all audio playback including music, sound effects, and UI sounds
+# Comprehensive Audio Management System for Menschenmon
+# Handles music, sound effects, voice acting, and audio settings
+
+signal audio_settings_changed
+signal music_track_changed(track_name: String)
+signal sound_effect_played(effect_name: String)
 
 # Audio players
 var music_player: AudioStreamPlayer
-var sfx_player: AudioStreamPlayer
-var ui_player: AudioStreamPlayer
+var ambient_player: AudioStreamPlayer
+var sfx_players: Array = []  # Array of AudioStreamPlayer
+var voice_player: AudioStreamPlayer
+
+# Audio pools for performance
+var sfx_pool_size: int = 10
+var current_sfx_index: int = 0
 
 # Audio settings
 var master_volume: float = 1.0
-var music_volume: float = 0.7
-var sfx_volume: float = 0.8
-var ui_volume: float = 0.6
+var music_volume: float = 0.8
+var sfx_volume: float = 0.9
+var voice_volume: float = 1.0
+var ambient_volume: float = 0.6
 
-# Audio streams (placeholders - would load actual audio files)
-var audio_streams = {}
+# Music system
+var current_music_track: String = ""
+var music_fade_duration: float = 2.0
+var music_loop_enabled: bool = true
 
-# Current music track
-var current_music: String = ""
-var music_fade_tween: Tween
+# Sound libraries
+var music_library: Dictionary = {}
+var sfx_library: Dictionary = {}
+var voice_library: Dictionary = {}
+var ambient_library: Dictionary = {}
+
+# Audio state
+var audio_enabled: bool = true
+var music_enabled: bool = true
+var sfx_enabled: bool = true
+var voice_enabled: bool = true
+var ambient_enabled: bool = true
+
+# Crossfade system
+var crossfade_tween: Tween
+var current_crossfade_target: AudioStreamPlayer
 
 func _ready():
+	# Initialize audio system
+	print("AudioManager: Initializing...")
+	
 	# Create audio players
+	_create_audio_players()
+	
+	# Load audio libraries
+	_load_audio_libraries()
+	
+	# Setup audio buses
+	_setup_audio_buses()
+	
+	# Connect to settings system
+	_connect_to_settings()
+	
+	print("AudioManager: Ready")
+
+func _create_audio_players():
+	# Create main music player
 	music_player = AudioStreamPlayer.new()
-	sfx_player = AudioStreamPlayer.new()
-	ui_player = AudioStreamPlayer.new()
-	
-	add_child(music_player)
-	add_child(sfx_player)
-	add_child(ui_player)
-	
-	# Set up audio players
+	music_player.name = "MusicPlayer"
 	music_player.bus = "Music"
-	sfx_player.bus = "SFX"
-	ui_player.bus = "UI"
+	add_child(music_player)
 	
-	# Set initial volumes
-	music_player.volume_db = linear_to_db(master_volume * music_volume)
-	sfx_player.volume_db = linear_to_db(master_volume * sfx_volume)
-	ui_player.volume_db = linear_to_db(master_volume * ui_volume)
+	# Create ambient audio player
+	ambient_player = AudioStreamPlayer.new()
+	ambient_player.name = "AmbientPlayer"
+	ambient_player.bus = "Ambient"
+	add_child(ambient_player)
 	
-	# Load audio streams (placeholder - would load actual files)
-	_load_audio_streams()
+	# Create voice player
+	voice_player = AudioStreamPlayer.new()
+	voice_player.name = "VoicePlayer"
+	voice_player.bus = "Voice"
+	add_child(voice_player)
+	
+	# Create SFX player pool
+	for i in range(sfx_pool_size):
+		var sfx_player = AudioStreamPlayer.new()
+		sfx_player.name = "SFXPlayer" + str(i)
+		sfx_player.bus = "SFX"
+		add_child(sfx_player)
+		sfx_players.append(sfx_player)
+	
+	# Create crossfade tween (will be created when needed)
+	crossfade_tween = null
+	
+	print("AudioManager: Created ", sfx_pool_size, " SFX players")
 
-func _load_audio_streams():
-	# Placeholder for loading actual audio files
-	# In a real implementation, you would load .ogg or .wav files here
+func _load_audio_libraries():
+	# Load music tracks
+	_load_music_library()
 	
-	# Example:
-	# audio_streams["ui_select"] = preload("res://audio/ui_select.ogg")
-	# audio_streams["ui_confirm"] = preload("res://audio/ui_confirm.ogg")
-	# audio_streams["battle_music"] = preload("res://audio/battle_music.ogg")
+	# Load sound effects
+	_load_sfx_library()
 	
-	# For now, we'll just have placeholders
-	audio_streams = {
-		"ui_select": null,
-		"ui_confirm": null,
-		"ui_cancel": null,
-		"ui_error": null,
-		"ui_open": null,
-		"ui_close": null,
-		"battle_music": null,
-		"menu_music": null,
-		"hit_normal": null,
-		"hit_critical": null,
-		"heal": null,
-		"victory": null,
-		"defeat": null,
-		"level_up": null,
-		"item_use": null,
-		"status_effect": null,
-		"escape": null,
-		"catch_success": null,
-		"catch_fail": null
+	# Load voice clips
+	_load_voice_library()
+	
+	# Load ambient sounds
+	_load_ambient_library()
+
+func _load_music_library():
+	# Define music tracks (placeholder paths)
+	music_library = {
+		"overworld": "res://audio/music/overworld.ogg",
+		"battle": "res://audio/music/battle.ogg",
+		"victory": "res://audio/music/victory.ogg",
+		"defeat": "res://audio/music/defeat.ogg",
+		"menu": "res://audio/music/menu.ogg",
+		"dialogue": "res://audio/music/dialogue.ogg",
+		"emotional": "res://audio/music/emotional.ogg",
+		"suspense": "res://audio/music/suspense.ogg"
 	}
+	
+	print("AudioManager: Loaded ", music_library.size(), " music tracks")
 
-# =============================================================================
-# MUSIC SYSTEM
-# =============================================================================
+func _load_sfx_library():
+	# Define sound effects (placeholder paths)
+	sfx_library = {
+		# UI sounds
+		"ui_select": "res://audio/sfx/ui_select.ogg",
+		"ui_confirm": "res://audio/sfx/ui_confirm.ogg",
+		"ui_cancel": "res://audio/sfx/ui_cancel.ogg",
+		"ui_error": "res://audio/sfx/ui_error.ogg",
+		
+		# Battle sounds
+		"battle_start": "res://audio/sfx/battle_start.ogg",
+		"attack_hit": "res://audio/sfx/attack_hit.ogg",
+		"attack_miss": "res://audio/sfx/attack_miss.ogg",
+		"critical_hit": "res://audio/sfx/critical_hit.ogg",
+		"super_effective": "res://audio/sfx/super_effective.ogg",
+		"not_effective": "res://audio/sfx/not_effective.ogg",
+		"status_effect": "res://audio/sfx/status_effect.ogg",
+		"level_up": "res://audio/sfx/level_up.ogg",
+		"hp_low": "res://audio/sfx/hp_low.ogg",
+		"faint": "res://audio/sfx/faint.ogg",
+		
+		# Catch sounds
+		"catch_throw": "res://audio/sfx/catch_throw.ogg",
+		"catch_success": "res://audio/sfx/catch_success.ogg",
+		"catch_fail": "res://audio/sfx/catch_fail.ogg",
+		"catch_break": "res://audio/sfx/catch_break.ogg",
+		
+		# Human sounds
+		"human_cry_benedikt": "res://audio/sfx/human_benedikt.ogg",
+		"human_cry_felix": "res://audio/sfx/human_felix.ogg",
+		"human_cry_anna": "res://audio/sfx/human_anna.ogg",
+		
+		# Environment sounds
+		"footstep": "res://audio/sfx/footstep.ogg",
+		"door_open": "res://audio/sfx/door_open.ogg",
+		"door_close": "res://audio/sfx/door_close.ogg",
+		"item_pickup": "res://audio/sfx/item_pickup.ogg",
+		"save_game": "res://audio/sfx/save_game.ogg",
+		"load_game": "res://audio/sfx/load_game.ogg"
+	}
+	
+	print("AudioManager: Loaded ", sfx_library.size(), " sound effects")
 
+func _load_voice_library():
+	# Define voice clips (placeholder paths)
+	voice_library = {
+		"benedikt_intro": "res://audio/voice/benedikt_intro.ogg",
+		"felix_laugh": "res://audio/voice/felix_laugh.ogg",
+		"anna_chaos": "res://audio/voice/anna_chaos.ogg",
+		"narrator_intro": "res://audio/voice/narrator_intro.ogg"
+	}
+	
+	print("AudioManager: Loaded ", voice_library.size(), " voice clips")
+
+func _load_ambient_library():
+	# Define ambient sounds (placeholder paths)
+	ambient_library = {
+		"forest": "res://audio/ambient/forest.ogg",
+		"city": "res://audio/ambient/city.ogg",
+		"indoor": "res://audio/ambient/indoor.ogg",
+		"battle_arena": "res://audio/ambient/battle_arena.ogg",
+		"night": "res://audio/ambient/night.ogg"
+	}
+	
+	print("AudioManager: Loaded ", ambient_library.size(), " ambient sounds")
+
+func _setup_audio_buses():
+	# Create audio buses for different audio types
+	# This would be done in Godot's audio bus setup, but we can set volumes here
+	_update_audio_volumes()
+
+func _connect_to_settings():
+	# Connect to settings system when available
+	var settings_manager = get_node_or_null("/root/SettingsManager")
+	if settings_manager:
+		settings_manager.settings_changed.connect(_on_settings_changed)
+
+func _on_settings_changed(settings: Dictionary):
+	# Update audio settings when changed
+	if settings.has("master_volume"):
+		master_volume = settings["master_volume"]
+	if settings.has("music_volume"):
+		music_volume = settings["music_volume"]
+	if settings.has("sfx_volume"):
+		sfx_volume = settings["sfx_volume"]
+	if settings.has("voice_volume"):
+		voice_volume = settings["voice_volume"]
+	if settings.has("ambient_volume"):
+		ambient_volume = settings["ambient_volume"]
+	
+	_update_audio_volumes()
+	audio_settings_changed.emit()
+
+func _update_audio_volumes():
+	# Update volume for all audio players
+	if music_player:
+		music_player.volume_db = _linear_to_db(master_volume * music_volume)
+	
+	if ambient_player:
+		ambient_player.volume_db = _linear_to_db(master_volume * ambient_volume)
+	
+	if voice_player:
+		voice_player.volume_db = _linear_to_db(master_volume * voice_volume)
+	
+	for sfx_player in sfx_players:
+		sfx_player.volume_db = _linear_to_db(master_volume * sfx_volume)
+
+func _linear_to_db(linear: float) -> float:
+	if linear <= 0.0:
+		return -80.0
+	return 20.0 * log(linear) / log(10.0)
+
+# Public API - Music Control
 func play_music(track_name: String, fade_in: bool = true, loop: bool = true):
-	if current_music == track_name:
+	if not music_enabled or not audio_enabled:
 		return
 	
-	# Stop current music
-	if music_player.playing:
-		if fade_in:
-			await fade_out_music()
-		else:
-			music_player.stop()
+	if track_name == current_music_track:
+		return  # Already playing
 	
-	# Play new music
-	if audio_streams.has(track_name) and audio_streams[track_name] != null:
-		music_player.stream = audio_streams[track_name]
-		music_player.loop = loop
+	if track_name in music_library:
+		var music_path = music_library[track_name]
+		var music_stream = load(music_path)
 		
-		if fade_in:
-			music_player.volume_db = linear_to_db(0.0)
-			music_player.play()
-			await fade_in_music()
+		if music_stream != null:
+			if fade_in and music_player.playing:
+				_crossfade_to_music(music_stream, loop)
+			else:
+				music_player.stream = music_stream
+				music_player.playing = true
+				if loop:
+					music_player.stream.loop = true
+				current_music_track = track_name
+				music_track_changed.emit(track_name)
+				print("AudioManager: Playing music track: ", track_name)
 		else:
-			music_player.volume_db = linear_to_db(master_volume * music_volume)
-			music_player.play()
-		
-		current_music = track_name
+			print("AudioManager: Failed to load music: ", music_path)
 	else:
 		print("AudioManager: Music track not found: ", track_name)
 
 func stop_music(fade_out: bool = true):
+	if fade_out:
+		_fade_out_music()
+	else:
+		music_player.stop()
+		current_music_track = ""
+
+func pause_music():
 	if music_player.playing:
-		if fade_out:
-			await fade_out_music()
-		else:
-			music_player.stop()
-	
-	current_music = ""
+		music_player.stream_paused = true
 
-func fade_in_music(duration: float = 1.0):
-	if music_fade_tween:
-		music_fade_tween.kill()
-	
-	music_fade_tween = create_tween()
-	music_fade_tween.tween_property(music_player, "volume_db", 
-		linear_to_db(master_volume * music_volume), duration)
+func resume_music():
+	if music_player.stream_paused:
+		music_player.stream_paused = false
 
-func fade_out_music(duration: float = 1.0):
-	if music_fade_tween:
-		music_fade_tween.kill()
-	
-	music_fade_tween = create_tween()
-	music_fade_tween.tween_property(music_player, "volume_db", linear_to_db(0.0), duration)
-	music_fade_tween.tween_callback(music_player.stop)
+func set_music_position(position: float):
+	if music_player.playing:
+		music_player.seek(position)
 
-# =============================================================================
-# SOUND EFFECTS
-# =============================================================================
-
-func play_sfx(sound_name: String, pitch: float = 1.0, volume_modifier: float = 1.0):
-	if audio_streams.has(sound_name) and audio_streams[sound_name] != null:
-		sfx_player.stream = audio_streams[sound_name]
-		sfx_player.pitch_scale = pitch
-		sfx_player.volume_db = linear_to_db(master_volume * sfx_volume * volume_modifier)
-		sfx_player.play()
-	else:
-		# Debug sound effect call
-		print("AudioManager: SFX played: ", sound_name)
-
-func play_ui_sound(sound_name: String, pitch: float = 1.0, volume_modifier: float = 1.0):
-	if audio_streams.has(sound_name) and audio_streams[sound_name] != null:
-		ui_player.stream = audio_streams[sound_name]
-		ui_player.pitch_scale = pitch
-		ui_player.volume_db = linear_to_db(master_volume * ui_volume * volume_modifier)
-		ui_player.play()
-	else:
-		# Debug UI sound call
-		print("AudioManager: UI sound played: ", sound_name)
-
-# =============================================================================
-# CONVENIENCE FUNCTIONS
-# =============================================================================
-
-func play_ui_select():
-	play_ui_sound("ui_select", 1.0, 0.8)
-
-func play_ui_confirm():
-	play_ui_sound("ui_confirm", 1.0, 1.0)
-
-func play_ui_cancel():
-	play_ui_sound("ui_cancel", 1.0, 1.0)
-
-func play_ui_error():
-	play_ui_sound("ui_error", 1.0, 1.0)
-
-func play_ui_open():
-	play_ui_sound("ui_open", 1.0, 0.9)
-
-func play_ui_close():
-	play_ui_sound("ui_close", 1.0, 0.9)
-
-func play_hit_sound(is_critical: bool = false):
-	if is_critical:
-		play_sfx("hit_critical", 1.0, 1.2)
-	else:
-		play_sfx("hit_normal", 1.0, 1.0)
-
-func play_heal_sound():
-	play_sfx("heal", 1.0, 1.0)
-
-func play_victory_sound():
-	play_sfx("victory", 1.0, 1.0)
-
-func play_defeat_sound():
-	play_sfx("defeat", 1.0, 1.0)
-
-func play_level_up_sound():
-	play_sfx("level_up", 1.0, 1.0)
-
-func play_item_use_sound():
-	play_sfx("item_use", 1.0, 1.0)
-
-func play_status_effect_sound():
-	play_sfx("status_effect", 1.0, 1.0)
-
-func play_escape_sound():
-	play_sfx("escape", 1.0, 1.0)
-
-func play_catch_sound(success: bool):
-	if success:
-		play_sfx("catch_success", 1.0, 1.0)
-	else:
-		play_sfx("catch_fail", 1.0, 1.0)
-
-# =============================================================================
-# VOLUME CONTROL
-# =============================================================================
-
-func set_master_volume(volume: float):
-	master_volume = clamp(volume, 0.0, 1.0)
-	_update_volumes()
-
-func set_music_volume(volume: float):
-	music_volume = clamp(volume, 0.0, 1.0)
-	_update_volumes()
-
-func set_sfx_volume(volume: float):
-	sfx_volume = clamp(volume, 0.0, 1.0)
-	_update_volumes()
-
-func set_ui_volume(volume: float):
-	ui_volume = clamp(volume, 0.0, 1.0)
-	_update_volumes()
-
-func _update_volumes():
-	music_player.volume_db = linear_to_db(master_volume * music_volume)
-	sfx_player.volume_db = linear_to_db(master_volume * sfx_volume)
-	ui_player.volume_db = linear_to_db(master_volume * ui_volume)
-
-# =============================================================================
-# BATTLE MUSIC SYSTEM
-# =============================================================================
-
-func start_battle_music():
-	play_music("battle_music", true, true)
-
-func start_menu_music():
-	play_music("menu_music", true, true)
-
-func play_victory_music():
-	play_music("victory", false, false)
-
-func play_defeat_music():
-	play_music("defeat", false, false)
-
-# =============================================================================
-# DYNAMIC AUDIO EFFECTS
-# =============================================================================
-
-func play_random_hit_sound(attack_type: String = "normal"):
-	var pitch_variation = randf_range(0.9, 1.1)
-	var volume_variation = randf_range(0.8, 1.0)
-	
-	match attack_type.to_lower():
-		"alkohol":
-			play_sfx("hit_normal", pitch_variation * 0.8, volume_variation * 1.2)
-		"party":
-			play_sfx("hit_normal", pitch_variation * 1.3, volume_variation * 1.1)
-		"chaos":
-			play_sfx("hit_normal", pitch_variation * 1.5, volume_variation * 1.3)
-		"gemutlich":
-			play_sfx("hit_normal", pitch_variation * 0.7, volume_variation * 0.9)
-		_:
-			play_sfx("hit_normal", pitch_variation, volume_variation)
-
-func play_damage_sound(damage_amount: int):
-	# Play different sounds based on damage amount
-	var pitch = 1.0
-	var volume = 1.0
-	
-	if damage_amount > 50:
-		pitch = 0.8
-		volume = 1.2
-	elif damage_amount > 30:
-		pitch = 0.9
-		volume = 1.1
-	elif damage_amount > 10:
-		pitch = 1.0
-		volume = 1.0
-	else:
-		pitch = 1.1
-		volume = 0.9
-	
-	play_sfx("hit_normal", pitch, volume)
-
-# =============================================================================
-# SAVE/LOAD SYSTEM
-# =============================================================================
-
-func save_audio_settings():
-	var save_data = {
-		"master_volume": master_volume,
-		"music_volume": music_volume,
-		"sfx_volume": sfx_volume,
-		"ui_volume": ui_volume
-	}
-	
-	var save_file = FileAccess.open("user://audio_settings.save", FileAccess.WRITE)
-	if save_file:
-		save_file.store_string(JSON.stringify(save_data))
-		save_file.close()
-
-func load_audio_settings():
-	var save_file = FileAccess.open("user://audio_settings.save", FileAccess.READ)
-	if save_file:
-		var json_string = save_file.get_as_text()
-		save_file.close()
-		
-		var json = JSON.new()
-		var parse_result = json.parse(json_string)
-		if parse_result == OK:
-			var save_data = json.data
-			master_volume = save_data.get("master_volume", 1.0)
-			music_volume = save_data.get("music_volume", 0.7)
-			sfx_volume = save_data.get("sfx_volume", 0.8)
-			ui_volume = save_data.get("ui_volume", 0.6)
-			_update_volumes()
-
-# =============================================================================
-# UTILITY FUNCTIONS
-# =============================================================================
+func get_music_position() -> float:
+	return music_player.get_playback_position()
 
 func is_music_playing() -> bool:
 	return music_player.playing
 
-func is_sfx_playing() -> bool:
-	return sfx_player.playing
+func _crossfade_to_music(new_stream: AudioStream, loop: bool):
+	# Create temporary player for crossfade
+	var temp_player = AudioStreamPlayer.new()
+	temp_player.stream = new_stream
+	temp_player.bus = "Music"
+	temp_player.volume_db = -80.0  # Start silent
+	if loop:
+		temp_player.stream.loop = true
+	add_child(temp_player)
+	temp_player.play()
+	
+	# Crossfade
+	crossfade_tween = create_tween()
+	crossfade_tween.tween_parallel().tween_property(music_player, "volume_db", -80.0, music_fade_duration)
+	crossfade_tween.tween_parallel().tween_property(temp_player, "volume_db", _linear_to_db(master_volume * music_volume), music_fade_duration)
+	
+	await crossfade_tween.finished
+	
+	# Switch players
+	music_player.stop()
+	remove_child(music_player)
+	music_player = temp_player
+	current_music_track = ""  # Will be set by caller
 
-func get_current_music() -> String:
-	return current_music
+func _fade_out_music():
+	var original_volume = music_player.volume_db
+	crossfade_tween = create_tween()
+	crossfade_tween.tween_property(music_player, "volume_db", -80.0, music_fade_duration)
+	await crossfade_tween.finished
+	music_player.stop()
+	music_player.volume_db = original_volume
+	current_music_track = ""
 
-func linear_to_db(linear_value: float) -> float:
-	if linear_value <= 0.0:
-		return -80.0
-	return 20.0 * log(linear_value) / log(10.0)
+# Public API - Sound Effects
+func play_sfx(effect_name: String, volume_override: float = 1.0):
+	if not sfx_enabled or not audio_enabled:
+		return
+	
+	if effect_name in sfx_library:
+		var sfx_path = sfx_library[effect_name]
+		var sfx_stream = load(sfx_path)
+		
+		if sfx_stream != null:
+			var sfx_player = _get_available_sfx_player()
+			if sfx_player:
+				sfx_player.stream = sfx_stream
+				sfx_player.volume_db = _linear_to_db(master_volume * sfx_volume * volume_override)
+				sfx_player.play()
+				sound_effect_played.emit(effect_name)
+				print("AudioManager: Playing SFX: ", effect_name)
+		else:
+			print("AudioManager: Failed to load SFX: ", sfx_path)
+	else:
+		print("AudioManager: SFX not found: ", effect_name)
 
-# =============================================================================
-# DEBUG FUNCTIONS
-# =============================================================================
+func play_sfx_at_position(effect_name: String, position: Vector2, volume_override: float = 1.0):
+	# For 2D positional audio (future enhancement)
+	play_sfx(effect_name, volume_override)
 
-func test_all_sounds():
-	print("Testing all UI sounds...")
-	play_ui_select()
+func stop_all_sfx():
+	for sfx_player in sfx_players:
+		sfx_player.stop()
+
+func _get_available_sfx_player() -> AudioStreamPlayer:
+	# Round-robin selection of SFX players
+	var player = sfx_players[current_sfx_index]
+	current_sfx_index = (current_sfx_index + 1) % sfx_pool_size
+	return player
+
+# Public API - Voice
+func play_voice(voice_name: String, interrupt_current: bool = true):
+	if not voice_enabled or not audio_enabled:
+		return
+	
+	if voice_name in voice_library:
+		var voice_path = voice_library[voice_name]
+		var voice_stream = load(voice_path)
+		
+		if voice_stream != null:
+			if interrupt_current or not voice_player.playing:
+				voice_player.stream = voice_stream
+				voice_player.play()
+				print("AudioManager: Playing voice: ", voice_name)
+		else:
+			print("AudioManager: Failed to load voice: ", voice_path)
+	else:
+		print("AudioManager: Voice clip not found: ", voice_name)
+
+func stop_voice():
+	voice_player.stop()
+
+func is_voice_playing() -> bool:
+	return voice_player.playing
+
+# Public API - Ambient
+func play_ambient(ambient_name: String, fade_in: bool = true, loop: bool = true):
+	if not ambient_enabled or not audio_enabled:
+		return
+	
+	if ambient_name in ambient_library:
+		var ambient_path = ambient_library[ambient_name]
+		var ambient_stream = load(ambient_path)
+		
+		if ambient_stream != null:
+			if fade_in and ambient_player.playing:
+				_fade_ambient_to(ambient_stream, loop)
+			else:
+				ambient_player.stream = ambient_stream
+				ambient_player.playing = true
+				if loop:
+					ambient_player.stream.loop = true
+				print("AudioManager: Playing ambient: ", ambient_name)
+		else:
+			print("AudioManager: Failed to load ambient: ", ambient_path)
+	else:
+		print("AudioManager: Ambient sound not found: ", ambient_name)
+
+func stop_ambient(fade_out: bool = true):
+	if fade_out:
+		_fade_out_ambient()
+	else:
+		ambient_player.stop()
+
+func _fade_ambient_to(new_stream: AudioStream, loop: bool):
+	var original_volume = ambient_player.volume_db
+	crossfade_tween = create_tween()
+	crossfade_tween.tween_property(ambient_player, "volume_db", -80.0, 1.0)
+	await crossfade_tween.finished
+	
+	ambient_player.stream = new_stream
+	if loop:
+		ambient_player.stream.loop = true
+	ambient_player.play()
+	
+	crossfade_tween = create_tween()
+	crossfade_tween.tween_property(ambient_player, "volume_db", original_volume, 1.0)
+
+func _fade_out_ambient():
+	var original_volume = ambient_player.volume_db
+	crossfade_tween = create_tween()
+	crossfade_tween.tween_property(ambient_player, "volume_db", -80.0, 1.0)
+	await crossfade_tween.finished
+	ambient_player.stop()
+	ambient_player.volume_db = original_volume
+
+# Public API - Settings
+func set_master_volume(volume: float):
+	master_volume = clamp(volume, 0.0, 1.0)
+	_update_audio_volumes()
+
+func set_music_volume(volume: float):
+	music_volume = clamp(volume, 0.0, 1.0)
+	_update_audio_volumes()
+
+func set_sfx_volume(volume: float):
+	sfx_volume = clamp(volume, 0.0, 1.0)
+	_update_audio_volumes()
+
+func set_voice_volume(volume: float):
+	voice_volume = clamp(volume, 0.0, 1.0)
+	_update_audio_volumes()
+
+func set_ambient_volume(volume: float):
+	ambient_volume = clamp(volume, 0.0, 1.0)
+	_update_audio_volumes()
+
+func set_audio_enabled(enabled: bool):
+	audio_enabled = enabled
+	if not enabled:
+		stop_music(false)
+		stop_all_sfx()
+		stop_voice()
+		stop_ambient(false)
+
+func set_music_enabled(enabled: bool):
+	music_enabled = enabled
+	if not enabled:
+		stop_music(false)
+
+func set_sfx_enabled(enabled: bool):
+	sfx_enabled = enabled
+	if not enabled:
+		stop_all_sfx()
+
+func set_voice_enabled(enabled: bool):
+	voice_enabled = enabled
+	if not enabled:
+		stop_voice()
+
+func set_ambient_enabled(enabled: bool):
+	ambient_enabled = enabled
+	if not enabled:
+		stop_ambient(false)
+
+# Public API - Utility
+func get_current_music_track() -> String:
+	return current_music_track
+
+func get_audio_settings() -> Dictionary:
+	return {
+		"master_volume": master_volume,
+		"music_volume": music_volume,
+		"sfx_volume": sfx_volume,
+		"voice_volume": voice_volume,
+		"ambient_volume": ambient_volume,
+		"audio_enabled": audio_enabled,
+		"music_enabled": music_enabled,
+		"sfx_enabled": sfx_enabled,
+		"voice_enabled": voice_enabled,
+		"ambient_enabled": ambient_enabled
+	}
+
+func get_available_tracks() -> Dictionary:
+	return {
+		"music": music_library.keys(),
+		"sfx": sfx_library.keys(),
+		"voice": voice_library.keys(),
+		"ambient": ambient_library.keys()
+	}
+
+# Battle-specific audio functions
+func play_battle_music():
+	play_music("battle", true, true)
+
+func play_victory_music():
+	play_music("victory", true, false)
+
+func play_defeat_music():
+	play_music("defeat", true, false)
+
+func play_attack_sfx(attack_type: String, is_critical: bool = false, effectiveness: float = 1.0):
+	if is_critical:
+		play_sfx("critical_hit")
+	else:
+		play_sfx("attack_hit")
+	
+	if effectiveness > 1.0:
+		play_sfx("super_effective")
+	elif effectiveness < 1.0:
+		play_sfx("not_effective")
+
+func play_catch_sequence(success: bool):
+	play_sfx("catch_throw")
+	await get_tree().create_timer(1.0).timeout
+	
+	if success:
+		play_sfx("catch_success")
+	else:
+		play_sfx("catch_fail")
+
+# UI-specific audio functions
+func play_ui_select():
+	play_sfx("ui_select", 0.7)
+
+func play_ui_confirm():
+	play_sfx("ui_confirm", 0.8)
+
+func play_ui_cancel():
+	play_sfx("ui_cancel", 0.6)
+
+func play_ui_error():
+	play_sfx("ui_error", 0.9)
+
+# Scene-specific audio functions
+func play_scene_audio(scene_name: String):
+	match scene_name:
+		"overworld":
+			play_music("overworld")
+			play_ambient("forest")
+		"battle":
+			play_battle_music()
+			play_ambient("battle_arena")
+		"menu":
+			play_music("menu")
+			stop_ambient()
+		"dialogue":
+			play_music("dialogue")
+		_:
+			# Default to overworld music
+			play_music("overworld")
+
+# Debug functions
+func test_audio_system():
+	print("AudioManager: Testing audio system...")
+	
+	# Test music
+	play_music("overworld")
+	await get_tree().create_timer(2.0).timeout
+	
+	# Test SFX
+	play_sfx("ui_select")
 	await get_tree().create_timer(0.5).timeout
-	play_ui_confirm()
-	await get_tree().create_timer(0.5).timeout
-	play_ui_cancel()
+	play_sfx("attack_hit")
 	await get_tree().create_timer(0.5).timeout
 	
-	print("Testing battle sounds...")
-	play_hit_sound(false)
-	await get_tree().create_timer(0.5).timeout
-	play_hit_sound(true)
-	await get_tree().create_timer(0.5).timeout
-	play_heal_sound()
-	await get_tree().create_timer(0.5).timeout
+	# Test voice
+	play_voice("benedikt_intro")
+	await get_tree().create_timer(1.0).timeout
 	
-	print("Audio test complete!")
-
-func mute_all():
-	set_master_volume(0.0)
-
-func unmute_all():
-	set_master_volume(1.0)
+	# Test ambient
+	play_ambient("forest")
+	
+	print("AudioManager: Audio test complete")

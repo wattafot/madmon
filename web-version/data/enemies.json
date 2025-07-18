@@ -1,0 +1,193 @@
+{
+  "enemies": {
+    "benedikt": {
+      "trainer_name": "Bene der Mitteldicke",
+      "fighter_name": "Bene",
+      "fighter_level": 1,
+      "title": "Der Träge",
+      "fighter_type": "GEMUTLICH",
+      "base_stats": {
+        "hp": 45,
+        "attack": 35,
+        "defense": 40,
+        "speed": 20
+      },
+      "attacks": [
+        {
+          "name": "Schwerfälliger Hieb",
+          "type": "NORMAL",
+          "category": "PHYSICAL",
+          "base_power": 70,
+          "accuracy": 95,
+          "max_ap": 25,
+          "description": "Ein langsamer aber kräftiger Schlag",
+          "priority": 0,
+          "status_effect": "",
+          "status_chance": 0.0
+        },
+        {
+          "name": "Energiesparmodus",
+          "type": "GEMUTLICH",
+          "category": "STATUS",
+          "base_power": 0,
+          "accuracy": 100,
+          "max_ap": 10,
+          "description": "Erhöht Verteidigung, verhindert Angriff",
+          "priority": 0,
+          "status_effect": "verteidigung_hoch",
+          "status_chance": 1.0
+        },
+        {
+          "name": "Überraschungs-Sprint",
+          "type": "CHAOS",
+          "category": "PHYSICAL",
+          "base_power": 50,
+          "accuracy": 100,
+          "max_ap": 15,
+          "description": "Überraschend schneller Angriff",
+          "priority": 2,
+          "status_effect": "",
+          "status_chance": 0.0
+        },
+        {
+          "name": "Provozieren",
+          "type": "CHAOS",
+          "category": "STATUS",
+          "base_power": 0,
+          "accuracy": 75,
+          "max_ap": 10,
+          "description": "Macht den Gegner wütend",
+          "priority": 0,
+          "status_effect": "wütend",
+          "status_chance": 0.60
+        }
+      ]
+    },
+    "party_felix": {
+      "trainer_name": "Party-König FELIX",
+      "fighter_name": "FEIERBIEST",
+      "fighter_level": 13,
+      "title": "Der Unaufhaltsame",
+      "fighter_type": "PARTY",
+      "base_stats": {
+        "hp": 55,
+        "attack": 65,
+        "defense": 45,
+        "speed": 70
+      },
+      "attacks": [
+        {
+          "name": "Konfetti-Sturm",
+          "type": "PARTY",
+          "category": "SPECIAL",
+          "base_power": 75,
+          "accuracy": 85,
+          "max_ap": 10,
+          "description": "Ein bunter Angriff mit Konfetti",
+          "priority": 0,
+          "status_effect": "verwirrt",
+          "status_chance": 0.2
+        },
+        {
+          "name": "Musik-Attacke",
+          "type": "PARTY",
+          "category": "SPECIAL",
+          "base_power": 60,
+          "accuracy": 100,
+          "max_ap": 20,
+          "description": "Laute Musik betäubt den Gegner",
+          "priority": 0,
+          "status_effect": "",
+          "status_chance": 0.0
+        },
+        {
+          "name": "Tanz-Wirbel",
+          "type": "PARTY",
+          "category": "STATUS",
+          "base_power": 0,
+          "accuracy": 95,
+          "max_ap": 15,
+          "description": "Hypnotisierender Tanz",
+          "priority": 0,
+          "status_effect": "verwirrt",
+          "status_chance": 0.8
+        },
+        {
+          "name": "Feier-Boost",
+          "type": "PARTY",
+          "category": "STATUS",
+          "base_power": 0,
+          "accuracy": 100,
+          "max_ap": 5,
+          "description": "Verstärkt alle Werte durch Partystimmung",
+          "priority": 0,
+          "status_effect": "angriff_hoch",
+          "status_chance": 1.0
+        }
+      ]
+    },
+    "chaos_anna": {
+      "trainer_name": "Chaos-Meisterin ANNA",
+      "fighter_name": "WIRBELWIND",
+      "fighter_level": 14,
+      "title": "Die Unberechenbare",
+      "fighter_type": "CHAOS",
+      "base_stats": {
+        "hp": 50,
+        "attack": 75,
+        "defense": 35,
+        "speed": 85
+      },
+      "attacks": [
+        {
+          "name": "Zufalls-Schlag",
+          "type": "CHAOS",
+          "category": "PHYSICAL",
+          "base_power": 80,
+          "accuracy": 70,
+          "max_ap": 15,
+          "description": "Unvorhersehbarer Angriff mit variabler Stärke",
+          "priority": 0,
+          "status_effect": "",
+          "status_chance": 0.0
+        },
+        {
+          "name": "Verwirrung-Welle",
+          "type": "CHAOS",
+          "category": "STATUS",
+          "base_power": 0,
+          "accuracy": 90,
+          "max_ap": 10,
+          "description": "Stiftet totale Verwirrung",
+          "priority": 0,
+          "status_effect": "verwirrt",
+          "status_chance": 0.9
+        },
+        {
+          "name": "Überraschungs-Hieb",
+          "type": "CHAOS",
+          "category": "PHYSICAL",
+          "base_power": 40,
+          "accuracy": 100,
+          "max_ap": 25,
+          "description": "Schneller, unerwarteter Angriff",
+          "priority": 3,
+          "status_effect": "",
+          "status_chance": 0.0
+        },
+        {
+          "name": "Totales Chaos",
+          "type": "CHAOS",
+          "category": "SPECIAL",
+          "base_power": 100,
+          "accuracy": 50,
+          "max_ap": 5,
+          "description": "Alles oder nichts - maximale Kraft oder Fehlschlag",
+          "priority": 0,
+          "status_effect": "betrunken",
+          "status_chance": 0.5
+        }
+      ]
+    }
+  }
+}
