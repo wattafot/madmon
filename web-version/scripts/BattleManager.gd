@@ -5,6 +5,10 @@ var particle_manager: ParticleManager
 var camera_effects: CameraEffects
 var floating_text_manager: FloatingTextManager
 
+# Status effect managers
+var player_status_manager: StatusEffectManager
+var enemy_status_manager: StatusEffectManager
+
 # Battle participants
 var enemy_trainer_name = "Anführer BENEDIKT"
 var enemy_fighter_name = "BOBO"
@@ -66,7 +70,7 @@ var enemy_database = {
 				"max_ap": 10,
 				"description": "Macht den Gegner wütend",
 				"priority": 0,
-				"status_effect": "wütend",
+				"status_effect": "angriff_hoch",
 				"status_chance": 0.60
 			}
 		]
@@ -204,7 +208,7 @@ var enemy_database = {
 				"max_ap": 5,
 				"description": "Alles oder nichts - maximale Kraft oder Fehlschlag",
 				"priority": 0,
-				"status_effect": "betrunken",
+				"status_effect": "verwirrt",
 				"status_chance": 0.5
 			}
 		]
@@ -240,6 +244,30 @@ var enemy_database = {
 				"priority": 0,
 				"status_effect": "",
 				"status_chance": 0.0
+			},
+			{
+				"name": "Giftige Röhre",
+				"type": AttackType.CHAOS,
+				"category": AttackCategory.SPECIAL,
+				"base_power": 30,
+				"accuracy": 90,
+				"max_ap": 15,
+				"description": "Spuckt Gift aus einer Röhre",
+				"priority": 0,
+				"status_effect": "vergiftet",
+				"status_chance": 0.8
+			},
+			{
+				"name": "Feuer-Blume",
+				"type": AttackType.CHAOS,
+				"category": AttackCategory.SPECIAL,
+				"base_power": 55,
+				"accuracy": 85,
+				"max_ap": 10,
+				"description": "Verbrennt den Gegner mit Feuer",
+				"priority": 0,
+				"status_effect": "verbrennung",
+				"status_chance": 0.6
 			}
 		]
 	}
@@ -1503,15 +1531,133 @@ func _get_power_stars(base_power: int) -> String:
 # ============================================================================
 
 func _add_status_effect(is_player: bool, effect_name: String, duration: int = 3):
+	# Convert old effect names to new enum values
+	var effect_type = _convert_status_effect_name(effect_name)
+	if effect_type == -1:
+		return  # Invalid effect name
+	
+	var status_manager = player_status_manager if is_player else enemy_status_manager
+	if status_manager:
+		status_manager.apply_effect(effect_type, duration)
+	
+	# Keep old system for compatibility
 	var status_dict = player_status_effects if is_player else enemy_status_effects
 	status_dict[effect_name] = duration
 	_update_status_display()
 
 func _remove_status_effect(is_player: bool, effect_name: String):
+	# Convert old effect names to new enum values
+	var effect_type = _convert_status_effect_name(effect_name)
+	if effect_type != -1:
+		var status_manager = player_status_manager if is_player else enemy_status_manager
+		if status_manager:
+			status_manager.remove_effect(effect_type)
+	
+	# Keep old system for compatibility
 	var status_dict = player_status_effects if is_player else enemy_status_effects
 	if effect_name in status_dict:
 		status_dict.erase(effect_name)
 	_update_status_display()
+
+func _convert_status_effect_name(effect_name: String) -> int:
+	"""Convert German status effect names to new enum values."""
+	match effect_name:
+		"vergiftet":
+			return StatusEffectIndicator.StatusEffectType.POISON
+		"gelähmt":
+			return StatusEffectIndicator.StatusEffectType.PARALYSIS
+		"verbrennung":
+			return StatusEffectIndicator.StatusEffectType.BURN
+		"eingefroren":
+			return StatusEffectIndicator.StatusEffectType.FREEZE
+		"schlaf":
+			return StatusEffectIndicator.StatusEffectType.SLEEP
+		"verwirrt", "betrunken":
+			return StatusEffectIndicator.StatusEffectType.CONFUSION
+		"angriff_hoch":
+			return StatusEffectIndicator.StatusEffectType.ATTACK_BOOST
+		"verteidigung_hoch":
+			return StatusEffectIndicator.StatusEffectType.DEFENSE_BOOST
+		"geschwindigkeit_hoch":
+			return StatusEffectIndicator.StatusEffectType.SPEED_BOOST
+		"angriff_schwach":
+			return StatusEffectIndicator.StatusEffectType.ATTACK_DEBUFF
+		"verteidigung_schwach":
+			return StatusEffectIndicator.StatusEffectType.DEFENSE_DEBUFF
+		"geschwindigkeit_schwach":
+			return StatusEffectIndicator.StatusEffectType.SPEED_DEBUFF
+		"regeneration":
+			return StatusEffectIndicator.StatusEffectType.REGENERATION
+		"schild":
+			return StatusEffectIndicator.StatusEffectType.SHIELD
+		"kritik_hoch":
+			return StatusEffectIndicator.StatusEffectType.CRITICAL_BOOST
+		_:
+			return -1  # Invalid effect name
+
+func _process_turn_status_effects():
+	"""Process status effects at the end of each turn."""
+	# Process player status effects
+	if player_status_manager:
+		var player_effects = player_status_manager.process_turn_effects()
+		if player_effects.damage > 0:
+			_apply_status_damage(true, player_effects.damage)
+		if player_effects.healing > 0:
+			_apply_status_healing(true, player_effects.healing)
+		for message in player_effects.messages:
+			_show_battle_text(message)
+	
+	# Process enemy status effects
+	if enemy_status_manager:
+		var enemy_effects = enemy_status_manager.process_turn_effects()
+		if enemy_effects.damage > 0:
+			_apply_status_damage(false, enemy_effects.damage)
+		if enemy_effects.healing > 0:
+			_apply_status_healing(false, enemy_effects.healing)
+		for message in enemy_effects.messages:
+			_show_battle_text(message)
+
+func _apply_status_damage(is_player: bool, damage: int):
+	"""Apply damage from status effects."""
+	if is_player:
+		player_hp = max(0, player_hp - damage)
+		_update_hp_bar(player_hp_bar, player_hp, player_max_hp)
+		
+		# Show damage animation
+		if floating_text_manager:
+			var damage_pos = player_hp_bar.global_position + Vector2(0, -20)
+			FloatingTextManager.damage(damage, damage_pos, false)
+	else:
+		enemy_hp = max(0, enemy_hp - damage)
+		_update_hp_bar(enemy_hp_bar, enemy_hp, enemy_max_hp)
+		
+		# Show damage animation
+		if floating_text_manager:
+			var damage_pos = enemy_hp_bar.global_position + Vector2(0, -20)
+			FloatingTextManager.damage(damage, damage_pos, false)
+	
+	# Check for battle end
+	if player_hp <= 0 or enemy_hp <= 0:
+		_check_battle_end()
+
+func _apply_status_healing(is_player: bool, healing: int):
+	"""Apply healing from status effects."""
+	if is_player:
+		player_hp = min(player_max_hp, player_hp + healing)
+		_update_hp_bar(player_hp_bar, player_hp, player_max_hp)
+		
+		# Show healing animation
+		if floating_text_manager:
+			var heal_pos = player_hp_bar.global_position + Vector2(0, -20)
+			FloatingTextManager.heal(healing, heal_pos)
+	else:
+		enemy_hp = min(enemy_max_hp, enemy_hp + healing)
+		_update_hp_bar(enemy_hp_bar, enemy_hp, enemy_max_hp)
+		
+		# Show healing animation
+		if floating_text_manager:
+			var heal_pos = enemy_hp_bar.global_position + Vector2(0, -20)
+			FloatingTextManager.heal(healing, heal_pos)
 
 func _update_status_display():
 	# Clear existing status badges
@@ -1755,6 +1901,17 @@ func _setup_visual_effects():
 	# Create and initialize FloatingTextManager
 	floating_text_manager = FloatingTextManager.new()
 	add_child(floating_text_manager)
+	
+	# Create and initialize StatusEffectManagers
+	player_status_manager = preload("res://scripts/StatusEffectManager.gd").new()
+	player_status_manager.set_owner_name(player_fighter_name)
+	player_status_manager.position = Vector2(50, 50)  # Top-left for player
+	add_child(player_status_manager)
+	
+	enemy_status_manager = preload("res://scripts/StatusEffectManager.gd").new()
+	enemy_status_manager.set_owner_name(enemy_fighter_name)
+	enemy_status_manager.position = Vector2(950, 50)  # Top-right for enemy
+	add_child(enemy_status_manager)
 	
 	# Set battle theme for UI
 	UIStyler.set_theme(UIStyler.UITheme.BATTLE)
@@ -2674,6 +2831,9 @@ func _use_boost_item_in_battle(item_id: String, target_name: String):
 	_end_player_turn()
 
 func _end_player_turn():
+	# Process status effects at end of player turn
+	_process_turn_status_effects()
+	
 	# Switch to enemy turn
 	current_phase = BattlePhase.ENEMY_TURN
 	_enemy_turn()
