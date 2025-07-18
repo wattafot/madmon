@@ -17,7 +17,13 @@ config/features=PackedStringArray("4.4", "GL Compatibility")
 
 [autoload]
 
+EventBus="*res://scripts/EventBus.gd"
+ServiceLocator="*res://scripts/ServiceLocator.gd"
+ErrorHandler="*res://scripts/ErrorHandler.gd"
+AutoSaveManager="*res://scripts/AutoSaveManager.gd"
+KeyboardShortcuts="*res://scripts/KeyboardShortcuts.gd"
 GameStateManager="*res://scripts/GameStateManager.gd"
+InventoryManager="*res://scripts/InventoryManager.gd"
 DataManager="*res://scripts/DataManager.gd"
 SaveManager="*res://scripts/SaveManager.gd"
 HumanSystem="*res://scripts/HumanSystem.gd"

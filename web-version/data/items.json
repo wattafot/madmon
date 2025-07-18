@@ -1,0 +1,273 @@
+{
+  "fanggeraete": {
+    "bierdeckel": {
+      "name": "Bierdeckel",
+      "description": "Ein leicht klebriger Bierdeckel. Eignet sich, um das Interesse von weniger motivierten Menschen zu wecken.",
+      "catch_rate": 1.0,
+      "category": "fanggeraete",
+      "rarity": "common",
+      "icon": "bierdeckel",
+      "stack_size": 99
+    },
+    "freundschaftsanfrage": {
+      "name": "Freundschaftsanfrage",
+      "description": "Eine digitale Geste der Zuneigung. Die meisten Menschen können nur schwer widerstehen.",
+      "catch_rate": 1.5,
+      "category": "fanggeraete",
+      "rarity": "common",
+      "icon": "freundschaftsanfrage",
+      "stack_size": 99
+    },
+    "arbeitsvertrag": {
+      "name": "Arbeitsvertrag",
+      "description": "Ein Bündel an Verpflichtungen und Versprechungen. Fängt selbst die faulsten Exemplare mit der Aussicht auf ein geregeltes Einkommen.",
+      "catch_rate": 2.0,
+      "category": "fanggeraete",
+      "rarity": "uncommon",
+      "icon": "arbeitsvertrag",
+      "stack_size": 99,
+      "type_bonus": ["GEMUTLICH", "NORMAL"]
+    },
+    "high_five": {
+      "name": "High-Five",
+      "description": "Eine schnelle, kumpelhafte Geste. Überrumpelt den Gegner, bevor er überhaupt weiß, wie ihm geschieht.",
+      "catch_rate": 3.0,
+      "category": "fanggeraete",
+      "rarity": "uncommon",
+      "icon": "high_five",
+      "stack_size": 99,
+      "first_turn_bonus": true
+    },
+    "kundigungsschreiben": {
+      "name": "Kündigungsschreiben",
+      "description": "Die ultimative Waffe. Konfrontiert mit der absoluten Freiheit, schließt sich dir jeder Mensch widerstandslos an.",
+      "catch_rate": 255.0,
+      "category": "fanggeraete",
+      "rarity": "legendary",
+      "icon": "kundigungsschreiben",
+      "stack_size": 1
+    }
+  },
+  "medizin": {
+    "kaffee": {
+      "name": "Kaffee",
+      "description": "Ein starker Kaffee. Weckt selbst die müdesten Gemüter auf.",
+      "heal_amount": 0,
+      "category": "medizin",
+      "rarity": "common",
+      "icon": "kaffee",
+      "stack_size": 99,
+      "cures_status": ["MUDE", "SCHLAF"]
+    },
+    "aspirin": {
+      "name": "Aspirin",
+      "description": "Lindert Kopfschmerzen und andere Leiden des modernen Lebens.",
+      "heal_amount": 0,
+      "category": "medizin",
+      "rarity": "common",
+      "icon": "aspirin",
+      "stack_size": 99,
+      "cures_status": ["GESTRESST", "BETRUNKEN", "VERWIRRT"]
+    },
+    "pizza_stueck": {
+      "name": "Stück Pizza",
+      "description": "Ein warmes Stück Pizza. Stellt die Motivation für weitere Aktivitäten wieder her.",
+      "heal_amount": 50,
+      "category": "medizin",
+      "rarity": "common",
+      "icon": "pizza_stueck",
+      "stack_size": 99
+    },
+    "doener": {
+      "name": "Döner",
+      "description": "Ein kompletter Döner. Macht satt und glücklich.",
+      "heal_amount": 100,
+      "category": "medizin",
+      "rarity": "uncommon",
+      "icon": "doener",
+      "stack_size": 99
+    },
+    "energy_drink": {
+      "name": "Energy-Drink",
+      "description": "Hochkonzentrierte Energie in flüssiger Form. Verleiht sofort neue Kraft.",
+      "heal_amount": 200,
+      "category": "medizin",
+      "rarity": "uncommon",
+      "icon": "energy_drink",
+      "stack_size": 99
+    },
+    "mamas_huhnersuppe": {
+      "name": "Mamas Hühnersuppe",
+      "description": "Das ultimative Heilmittel. Heilt alle Leiden und füllt die Motivation komplett auf.",
+      "heal_amount": 999,
+      "category": "medizin",
+      "rarity": "rare",
+      "icon": "mamas_huhnersuppe",
+      "stack_size": 99,
+      "cures_all_status": true
+    },
+    "defibrillator": {
+      "name": "Defibrillator",
+      "description": "Medizinisches Gerät zur Wiederbelebung. Bringt demotivierte Menschen wieder auf die Beine.",
+      "heal_amount": 0,
+      "category": "medizin",
+      "rarity": "rare",
+      "icon": "defibrillator",
+      "stack_size": 99,
+      "revive": true,
+      "revive_hp_percent": 0.5
+    }
+  },
+  "kampf_boosts": {
+    "doppelter_espresso": {
+      "name": "Doppelter Espresso",
+      "description": "Hochkonzentriertes Koffein. Erhöht den Angriff für den nächsten Kampf.",
+      "category": "kampf_boosts",
+      "rarity": "common",
+      "icon": "doppelter_espresso",
+      "stack_size": 99,
+      "boost_stat": "attack",
+      "boost_amount": 1,
+      "boost_duration": "battle"
+    },
+    "motivations_poster": {
+      "name": "Motivations-Poster",
+      "description": "Ein inspirierendes Poster mit Sprüchen wie 'Du schaffst das!'. Erhöht die geistige Stärke.",
+      "category": "kampf_boosts",
+      "rarity": "common",
+      "icon": "motivations_poster",
+      "stack_size": 99,
+      "boost_stat": "special_attack",
+      "boost_amount": 1,
+      "boost_duration": "battle"
+    },
+    "fahrradhelm": {
+      "name": "Fahrradhelm",
+      "description": "Schützt vor Kopfverletzungen und anderen Unannehmlichkeiten. Erhöht die Verteidigung.",
+      "category": "kampf_boosts",
+      "rarity": "common",
+      "icon": "fahrradhelm",
+      "stack_size": 99,
+      "boost_stat": "defense",
+      "boost_amount": 1,
+      "boost_duration": "battle"
+    },
+    "energy_gel": {
+      "name": "Energy-Gel",
+      "description": "Hochkonzentrierte Energie für Sportler. Erhöht die Geschwindigkeit temporär.",
+      "category": "kampf_boosts",
+      "rarity": "uncommon",
+      "icon": "energy_gel",
+      "stack_size": 99,
+      "boost_stat": "speed",
+      "boost_amount": 1,
+      "boost_duration": "battle"
+    }
+  },
+  "basis_items": {
+    "smartphone": {
+      "name": "Smartphone",
+      "description": "Dein treuer digitaler Begleiter. Enthält den Menschendex, Karte und andere nützliche Apps.",
+      "category": "basis_items",
+      "rarity": "key",
+      "icon": "smartphone",
+      "stack_size": 1,
+      "key_item": true
+    },
+    "wg_schluessel": {
+      "name": "WG-Schlüssel",
+      "description": "Der Schlüssel zu deiner WG. Hier kannst du deine gefangenen Menschen heilen und lagern.",
+      "category": "basis_items",
+      "rarity": "key",
+      "icon": "wg_schluessel",
+      "stack_size": 1,
+      "key_item": true
+    },
+    "fahrrad": {
+      "name": "Fahrrad",
+      "description": "Dein zuverlässiges Fortbewegungsmittel. Ermöglicht schnelleres Reisen durch die Stadt.",
+      "category": "basis_items",
+      "rarity": "key",
+      "icon": "fahrrad",
+      "stack_size": 1,
+      "key_item": true
+    },
+    "leere_flaschen": {
+      "name": "Leere Flaschen",
+      "description": "Gesammelte Pfandflaschen. Können im Späti gegen Geld eingetauscht werden.",
+      "category": "basis_items",
+      "rarity": "common",
+      "icon": "leere_flaschen",
+      "stack_size": 999,
+      "sell_value": 25
+    },
+    "geldbeutel": {
+      "name": "Geldbeutel",
+      "description": "Dein Portemonnaie. Enthält dein hart erarbeitetes Geld.",
+      "category": "basis_items",
+      "rarity": "key",
+      "icon": "geldbeutel",
+      "stack_size": 1,
+      "key_item": true
+    }
+  },
+  "drop_tables": {
+    "PARTY": {
+      "common": [
+        {"item": "bierdeckel", "chance": 0.6},
+        {"item": "energy_drink", "chance": 0.2},
+        {"item": "leere_flaschen", "chance": 0.2}
+      ],
+      "uncommon": [
+        {"item": "freundschaftsanfrage", "chance": 0.7},
+        {"item": "high_five", "chance": 0.3}
+      ],
+      "rare": [
+        {"item": "kundigungsschreiben", "chance": 0.01}
+      ]
+    },
+    "ALKOHOL": {
+      "common": [
+        {"item": "bierdeckel", "chance": 0.8},
+        {"item": "aspirin", "chance": 0.2}
+      ],
+      "uncommon": [
+        {"item": "defibrillator", "chance": 0.5},
+        {"item": "mamas_huhnersuppe", "chance": 0.5}
+      ]
+    },
+    "GEMUTLICH": {
+      "common": [
+        {"item": "kaffee", "chance": 0.5},
+        {"item": "pizza_stueck", "chance": 0.3},
+        {"item": "doener", "chance": 0.2}
+      ],
+      "uncommon": [
+        {"item": "arbeitsvertrag", "chance": 0.6},
+        {"item": "motivations_poster", "chance": 0.4}
+      ]
+    },
+    "NORMAL": {
+      "common": [
+        {"item": "freundschaftsanfrage", "chance": 0.4},
+        {"item": "kaffee", "chance": 0.3},
+        {"item": "aspirin", "chance": 0.3}
+      ],
+      "uncommon": [
+        {"item": "doppelter_espresso", "chance": 0.5},
+        {"item": "fahrradhelm", "chance": 0.5}
+      ]
+    },
+    "CHAOS": {
+      "common": [
+        {"item": "energy_drink", "chance": 0.4},
+        {"item": "energy_gel", "chance": 0.3},
+        {"item": "leere_flaschen", "chance": 0.3}
+      ],
+      "uncommon": [
+        {"item": "high_five", "chance": 0.8},
+        {"item": "kundigungsschreiben", "chance": 0.2}
+      ]
+    }
+  }
+}

@@ -29,6 +29,12 @@ func _get_game_state_manager():
 		# Connect to state changes
 		game_state_manager.input_context_changed.connect(_on_input_context_changed)
 
+func _input(event):
+	# Handle inventory access
+	if event.is_pressed() and event.is_action("ui_cancel"):  # ESC key
+		if game_state_manager and game_state_manager.get_current_state() == game_state_manager.GameState.EXPLORING:
+			game_state_manager.open_inventory()
+
 func _physics_process(delta):
 	# Only process movement in exploration context
 	if not movement_enabled:
