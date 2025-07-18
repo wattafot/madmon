@@ -1,12 +1,25 @@
 extends Node2D
 
+# Performance-optimized Battle Manager with external data integration
+# Version 2.0 - Improved architecture for Menschen-System compatibility
+
 # Battle participants
 var enemy_trainer_name = "Anführer BENEDIKT"
 var enemy_fighter_name = "BOBO"
 var player_trainer_name = "Kleines Pokemon"
 var player_fighter_name = "FRIEDER"
 
-# Enemy definitions database
+# External data management
+var data_manager: Node = null
+var save_manager: Node = null
+
+# Current enemy configuration
+var current_enemy_id = "benedikt"
+
+# Cached UI styles for performance
+var cached_ui_styles: Dictionary = {}
+
+# Legacy enemy database (will be removed when DataManager is fully integrated)
 var enemy_database = {
 	"benedikt": {
 		"trainer_name": "Bene der Mitteldicke",
@@ -202,8 +215,7 @@ var enemy_database = {
 	}
 }
 
-# Current enemy configuration
-var current_enemy_id = "benedikt"
+# Current enemy configuration (already declared at top)
 
 # UI References
 @onready var enemy_name_label = $UI/StatusBars/FoeStatusBar/FoeNameLevel
@@ -298,17 +310,128 @@ var enemy_status_effects = {}
 # ============================================================================
 
 func _ready():
-	# Get game state manager
+	# Get core managers
 	game_state_manager = get_node("/root/GameStateManager")
+	data_manager = get_node_or_null("/root/DataManager")
+	save_manager = get_node_or_null("/root/SaveManager")
 	
+	# Initialize cached UI styles for performance
+	_initialize_ui_style_cache()
+	
+	# Wait for data manager to load if available
+	if data_manager and not data_manager.is_data_loaded():
+		data_manager.data_loaded.connect(_on_data_loaded)
+		data_manager.data_load_failed.connect(_on_data_load_failed)
+	else:
+		_initialize_battle_system()
+
+func _on_data_loaded():
+	print("BattleManager: Data loaded successfully, initializing battle system")
+	_initialize_battle_system()
+
+func _on_data_load_failed(error: String):
+	print("BattleManager: Data load failed: ", error, " - Using fallback data")
+	_initialize_battle_system()
+
+func _initialize_battle_system():
 	# Initialize attack sets
 	_initialize_attacks()
 	
-	# Setup UI styling first
+	# Setup UI styling
 	_setup_ui_styling()
 	
 	# Start battle sequence
 	_start_battle_intro()
+
+func _initialize_ui_style_cache():
+	# Pre-create commonly used UI styles for performance
+	print("BattleManager: Initializing UI style cache...")
+	
+	# Enemy status bar style
+	var enemy_style = StyleBoxFlat.new()
+	enemy_style.bg_color = Color("#FFE4E1")  # Light red/pink background
+	enemy_style.border_color = Color("#FF6B6B")  # Red border
+	enemy_style.border_width_left = 2
+	enemy_style.border_width_right = 2
+	enemy_style.border_width_top = 2
+	enemy_style.border_width_bottom = 2
+	enemy_style.corner_radius_top_left = 15
+	enemy_style.corner_radius_top_right = 15
+	enemy_style.corner_radius_bottom_left = 15
+	enemy_style.corner_radius_bottom_right = 15
+	cached_ui_styles["enemy_status_bar"] = enemy_style
+	
+	# Player status bar style
+	var player_style = StyleBoxFlat.new()
+	player_style.bg_color = Color("#E6F3FF")  # Light blue background
+	player_style.border_color = Color("#4A90E2")  # Blue border
+	player_style.border_width_left = 2
+	player_style.border_width_right = 2
+	player_style.border_width_top = 2
+	player_style.border_width_bottom = 2
+	player_style.corner_radius_top_left = 15
+	player_style.corner_radius_top_right = 15
+	player_style.corner_radius_bottom_left = 15
+	player_style.corner_radius_bottom_right = 15
+	cached_ui_styles["player_status_bar"] = player_style
+	
+	# Button normal style
+	var button_normal_style = StyleBoxFlat.new()
+	button_normal_style.bg_color = Color("#F0F0F0")
+	button_normal_style.border_color = Color("#CCCCCC")
+	button_normal_style.border_width_left = 1
+	button_normal_style.border_width_right = 1
+	button_normal_style.border_width_top = 1
+	button_normal_style.border_width_bottom = 1
+	button_normal_style.corner_radius_top_left = 8
+	button_normal_style.corner_radius_top_right = 8
+	button_normal_style.corner_radius_bottom_left = 8
+	button_normal_style.corner_radius_bottom_right = 8
+	cached_ui_styles["button_normal"] = button_normal_style
+	
+	# Button selected style
+	var button_selected_style = StyleBoxFlat.new()
+	button_selected_style.bg_color = Color("#FFFACD")  # Light yellow background
+	button_selected_style.border_color = Color("#FF4500")  # Orange border
+	button_selected_style.border_width_left = 3
+	button_selected_style.border_width_right = 3
+	button_selected_style.border_width_top = 3
+	button_selected_style.border_width_bottom = 3
+	button_selected_style.corner_radius_top_left = 8
+	button_selected_style.corner_radius_top_right = 8
+	button_selected_style.corner_radius_bottom_left = 8
+	button_selected_style.corner_radius_bottom_right = 8
+	cached_ui_styles["button_selected"] = button_selected_style
+	
+	# Attack panel normal style
+	var attack_panel_normal = StyleBoxFlat.new()
+	attack_panel_normal.bg_color = Color("#FFFFFF")
+	attack_panel_normal.border_color = Color("#DDDDDD")
+	attack_panel_normal.border_width_left = 1
+	attack_panel_normal.border_width_right = 1
+	attack_panel_normal.border_width_top = 1
+	attack_panel_normal.border_width_bottom = 1
+	attack_panel_normal.corner_radius_top_left = 8
+	attack_panel_normal.corner_radius_top_right = 8
+	attack_panel_normal.corner_radius_bottom_left = 8
+	attack_panel_normal.corner_radius_bottom_right = 8
+	cached_ui_styles["attack_panel_normal"] = attack_panel_normal
+	
+	# Attack panel selected style
+	var attack_panel_selected = StyleBoxFlat.new()
+	attack_panel_selected.bg_color = Color("#FFFACD")  # Light yellow
+	attack_panel_selected.border_color = Color("#FF4500")  # Orange border
+	attack_panel_selected.border_width_left = 3
+	attack_panel_selected.border_width_right = 3
+	attack_panel_selected.border_width_top = 3
+	attack_panel_selected.border_width_bottom = 3
+	attack_panel_selected.corner_radius_top_left = 8
+	attack_panel_selected.corner_radius_top_right = 8
+	attack_panel_selected.corner_radius_bottom_left = 8
+	attack_panel_selected.corner_radius_bottom_right = 8
+	cached_ui_styles["attack_panel_selected"] = attack_panel_selected
+	
+	print("BattleManager: UI style cache initialized with ", cached_ui_styles.size(), " styles")
 
 func _start_battle_intro():
 	# Load enemy data from database
@@ -471,10 +594,8 @@ func _input(event):
 		if attack_menu_active:
 			_handle_attack_menu_input(event)
 		else:
-			if event.is_action("ui_cancel"):
-				# Return to exploration (flee)
-				_end_battle()
-			elif event.is_action("ui_right") or event.is_action("ui_left"):
+			# ESC key disabled - players must fight to completion
+			if event.is_action("ui_right") or event.is_action("ui_left"):
 				# Navigate horizontally between buttons
 				_navigate_buttons_horizontal(event.is_action("ui_right"))
 			elif event.is_action("ui_down") or event.is_action("ui_up"):
