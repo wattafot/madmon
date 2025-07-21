@@ -12,6 +12,7 @@ signal game_paused
 signal game_resumed
 signal game_saved
 signal game_loaded
+signal service_registered(service_name: String, service: Node)
 
 # =============================================================================
 # PLAYER EVENTS
@@ -43,6 +44,7 @@ signal battle_ended(victory: bool)
 signal battle_escaped
 signal turn_started(is_player_turn: bool)
 signal turn_ended(is_player_turn: bool)
+signal battle_turn_started(is_player_turn: bool)
 signal attack_selected(attack_name: String)
 signal damage_dealt(damage: int, is_critical: bool, target: Node)
 signal healing_done(heal_amount: int, target: Node)
