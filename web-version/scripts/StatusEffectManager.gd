@@ -1,3 +1,4 @@
+class_name StatusEffectManager
 extends Control
 
 # StatusEffectManager - Manages multiple status effect indicators
@@ -19,7 +20,7 @@ signal status_effect_triggered(effect_type: StatusEffectIndicator.StatusEffectTy
 @export var effect_spacing: float = 36.0
 @export var show_tooltips: bool = true
 @export var auto_process_effects: bool = true
-@export var layout_direction: HBoxContainer.AlignmentMode = HBoxContainer.ALIGNMENT_BEGIN
+@export var effect_layout_direction: HBoxContainer.AlignmentMode = HBoxContainer.ALIGNMENT_BEGIN
 
 # =============================================================================
 # UI NODES
@@ -62,7 +63,7 @@ func _setup_ui():
 	# Create effect container
 	effect_container = HBoxContainer.new()
 	effect_container.name = "EffectContainer"
-	effect_container.alignment = layout_direction
+	effect_container.alignment = effect_layout_direction
 	effect_container.add_theme_constant_override("separation", int(effect_spacing - 32))
 	add_child(effect_container)
 	

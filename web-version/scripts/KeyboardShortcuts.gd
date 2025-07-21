@@ -125,6 +125,10 @@ func _input(event: InputEvent):
 	if not _shortcut_enabled:
 		return
 	
+	# Completely disable shortcuts during dialogue
+	if _current_context == "dialogue":
+		return
+	
 	if event is InputEventKey and event.pressed:
 		_handle_key_press(event.keycode, event)
 
@@ -137,6 +141,10 @@ func _handle_key_press(keycode: Key, event: InputEventKey):
 		if keycode in keys:
 			# Check modifiers if specified
 			if _check_modifiers(shortcut_data, event):
+				# Special handling for dialog context - don't consume confirm/escape inputs
+				if _current_context == "dialogue" and shortcut_data.get("action") in ["confirm", "escape"]:
+					return
+				
 				_execute_shortcut(shortcut_name, shortcut_data)
 				get_viewport().set_input_as_handled()
 				return
@@ -226,6 +234,10 @@ func _handle_escape():
 
 func _handle_confirm():
 	"""Handle confirm key."""
+	# In dialog context, don't handle the input - let GameStateManager handle it
+	if _current_context == "dialogue":
+		return
+	
 	# This would typically be handled by the UI system
 	EventBus.emit_safe("ui_confirm_pressed")
 
@@ -260,18 +272,29 @@ func _execute_custom_action(action: String):
 # CONTEXT MANAGEMENT
 # =============================================================================
 
-func _on_game_state_changed(old_state: GameConstants.GameState, new_state: GameConstants.GameState):
+func _on_game_state_changed(old_state, new_state):
 	"""Handle game state changes."""
-	match new_state:
-		GameConstants.GameState.EXPLORING:
+	# Convert state to string for matching (works with any enum)
+	var state_name = ""
+	if typeof(new_state) == TYPE_INT:
+		# Get the GameStateManager enum keys
+		var game_state_manager = ServiceLocator.get_service_safe("GameStateManager")
+		if game_state_manager:
+			# GameStateManager has its own enum, get the key name
+			var state_keys = ["EXPLORING", "DIALOGUE", "BATTLE_MENU", "BATTLE", "INVENTORY", "PAUSED"]
+			if new_state < state_keys.size():
+				state_name = state_keys[new_state]
+	
+	match state_name:
+		"EXPLORING":
 			set_context("exploring")
-		GameConstants.GameState.BATTLE:
+		"BATTLE", "BATTLE_MENU":
 			set_context("battle")
-		GameConstants.GameState.INVENTORY:
+		"INVENTORY":
 			set_context("inventory")
-		GameConstants.GameState.DIALOGUE:
+		"DIALOGUE":
 			set_context("dialogue")
-		GameConstants.GameState.MENU:
+		"PAUSED":
 			set_context("menu")
 		_:
 			set_context("global")
@@ -282,8 +305,7 @@ func set_context(context: String):
 		_current_context = context
 		_setup_active_shortcuts()
 		
-		if GameConstants.DEBUG_MODE:
-			print("KeyboardShortcuts: Context changed to '%s'" % context)
+		# Debug: print("KeyboardShortcuts: Context changed to '%s'" % context)
 
 func push_context(context: String):
 	"""Push a new context onto the stack."""

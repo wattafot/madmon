@@ -364,6 +364,11 @@ var enemy_attacks = []
 var attack_menu_active = false
 var current_attack_index = 0
 
+# Battle inventory state
+var battle_inventory_items = []
+var current_inventory_index = 0
+var current_state = "waiting_for_input"
+
 # Status effect tracking
 var player_status_effects = {}
 var enemy_status_effects = {}
@@ -544,22 +549,25 @@ func _start_battle_intro():
 	_update_hp_bar_colors()
 	
 	# Set initial battle text
-	battle_text.text = enemy_trainer_name + " fordert dich heraus!\n\nWas soll dein Pokémon tun?"
+	battle_text.text = enemy_trainer_name + " fordert dich heraus!\n\n(Drücke SPACE zum Fortfahren)"
 	
 	# Show text box initially, hide command box
 	battle_text_box.visible = true
 	command_box.visible = false
 	
+	# Connect button signals early so input handling works
+	_connect_battle_buttons()
+	
 	# Play intro sequence
 	await _play_intro_sequence()
 	
-	# Switch to command interface
-	battle_text_box.visible = false
-	command_box.visible = true
-	current_phase = BattlePhase.PLAYER_TURN
+	# Note: The intro will transition to player turn when user presses space/enter
 	
-	# Connect button signals
-	_connect_battle_buttons()
+	# Add test status effects to verify they work
+	await get_tree().create_timer(1.0).timeout
+	_add_status_effect(true, "wütend", 5)
+	_add_status_effect(true, "betrunken", 3)
+	print("Test status effects added to player")
 
 func _load_enemy_data():
 	# Load enemy data from database
@@ -689,8 +697,25 @@ func _play_intro_sequence():
 # ============================================================================
 
 func _input(event):
-	if current_phase == BattlePhase.PLAYER_TURN and event.is_pressed():
-		if attack_menu_active:
+	if not event.is_pressed():
+		return
+	
+	# Handle battle text dismissal (works in any phase)
+	if battle_text_box.visible and (event.is_action("ui_accept") or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER):
+		_dismiss_battle_text()
+		return
+	
+	# Handle intro phase input
+	if current_phase == BattlePhase.INTRO:
+		# Allow continuing through intro text
+		if event.is_action("ui_accept") or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER:
+			_continue_intro()
+		return
+	
+	if current_phase == BattlePhase.PLAYER_TURN:
+		if current_state == "battle_inventory":
+			_handle_inventory_input(event)
+		elif attack_menu_active:
 			_handle_attack_menu_input(event)
 		else:
 			# ESC key disabled - players must fight to completion
@@ -979,7 +1004,8 @@ func _on_attack_pressed():
 	_show_attack_menu()
 
 func _on_bag_pressed():
-	_show_battle_text("Was möchtest du aus dem Beutel nehmen?\n\n(Bag menu would open here)")
+	# Open battle inventory
+	_show_battle_inventory()
 
 func _on_humans_pressed():
 	_show_battle_text("Welchen Menschen möchtest du einsetzen?\n\n(Human selection would open here)")
@@ -987,6 +1013,152 @@ func _on_humans_pressed():
 func _on_run_pressed():
 	_show_battle_text("Du kannst nicht vor einem Trainer-Kampf fliehen!")
 	run_button.disabled = true
+
+func _show_battle_inventory():
+	# Show battle inventory menu
+	current_state = "battle_inventory"
+	current_inventory_index = 0
+	
+	# Get available items from inventory manager
+	var inventory_manager = get_node_or_null("/root/InventoryManager")
+	if inventory_manager:
+		battle_inventory_items = _get_battle_usable_items(inventory_manager)
+	else:
+		# Fallback items for testing
+		battle_inventory_items = [
+			{"id": "heiltrank", "name": "Heiltrank", "description": "Heilt 20 HP"},
+			{"id": "supertrank", "name": "Supertrank", "description": "Heilt 50 HP"},
+			{"id": "angriffsstärkung", "name": "Angriffsstärkung", "description": "Erhöht Angriff um 1 Stufe"}
+		]
+	
+	_update_inventory_display()
+	
+	# Hide command box while in inventory
+	command_box.visible = false
+	
+	print("Battle inventory opened with ", battle_inventory_items.size(), " items")
+
+func _get_battle_usable_items(inventory_manager) -> Array:
+	# Get items that can be used in battle
+	var usable_items = []
+	
+	# Add healing items
+	if inventory_manager.has_method("get_item_quantity"):
+		if inventory_manager.get_item_quantity("heiltrank") > 0:
+			usable_items.append({"id": "heiltrank", "name": "Heiltrank", "description": "Heilt 20 HP"})
+		if inventory_manager.get_item_quantity("supertrank") > 0:
+			usable_items.append({"id": "supertrank", "name": "Supertrank", "description": "Heilt 50 HP"})
+		if inventory_manager.get_item_quantity("angriffsstärkung") > 0:
+			usable_items.append({"id": "angriffsstärkung", "name": "Angriffsstärkung", "description": "Erhöht Angriff um 1 Stufe"})
+	
+	return usable_items
+
+func _update_inventory_display():
+	# Display current inventory item
+	if battle_inventory_items.size() == 0:
+		_show_battle_text("BEUTEL ist leer!\n\n(Drücke ESCAPE um zurückzukehren)")
+		return
+	
+	var current_item = battle_inventory_items[current_inventory_index]
+	var display_text = "BEUTEL - Item " + str(current_inventory_index + 1) + "/" + str(battle_inventory_items.size()) + "\n\n"
+	display_text += "▶ " + current_item.name + "\n"
+	display_text += current_item.description + "\n\n"
+	display_text += "STEUERUNG:\n"
+	display_text += "↑/↓ - Item wählen\n"
+	display_text += "ENTER - Item verwenden\n"
+	display_text += "ESCAPE - Zurück"
+	
+	_show_battle_text(display_text)
+
+func _close_battle_inventory():
+	current_state = "waiting_for_input"
+	command_box.visible = true
+	print("Battle inventory closed")
+
+func _handle_inventory_input(event):
+	# Handle inventory navigation
+	if event.is_action("ui_up") or event.keycode == KEY_W:
+		if current_inventory_index > 0:
+			current_inventory_index -= 1
+			_update_inventory_display()
+	elif event.is_action("ui_down") or event.keycode == KEY_S:
+		if current_inventory_index < battle_inventory_items.size() - 1:
+			current_inventory_index += 1
+			_update_inventory_display()
+	elif event.is_action("ui_accept") or event.keycode == KEY_ENTER:
+		if battle_inventory_items.size() > 0:
+			_use_inventory_item()
+	elif event.is_action("ui_cancel") or event.keycode == KEY_ESCAPE:
+		_close_battle_inventory()
+
+func _use_inventory_item():
+	if battle_inventory_items.size() == 0:
+		return
+	
+	var item = battle_inventory_items[current_inventory_index]
+	
+	# Use the item
+	match item.id:
+		"heiltrank":
+			_use_healing_item(20)
+		"supertrank":
+			_use_healing_item(50)
+		"angriffsstärkung":
+			_use_stat_boost("angriff")
+		_:
+			_show_battle_text("Item konnte nicht verwendet werden.")
+			return
+	
+	# Remove item from inventory
+	var inventory_manager = get_node_or_null("/root/InventoryManager")
+	if inventory_manager and inventory_manager.has_method("use_item"):
+		inventory_manager.use_item(item.id, "player")
+	
+	# Close inventory after use
+	_close_battle_inventory()
+
+func _use_healing_item(heal_amount: int):
+	# Heal the player
+	var current_hp = 95  # Get from actual player data
+	var max_hp = 100     # Get from actual player data
+	var new_hp = min(current_hp + heal_amount, max_hp)
+	
+	_show_battle_text("Du verwendest " + battle_inventory_items[current_inventory_index].name + "!\n\nFRIEDER erholt " + str(heal_amount) + " HP!")
+	
+	# Update HP bar (you may need to implement this)
+	player_hp_bar.value = (new_hp / float(max_hp)) * 100
+	
+	print("Player healed for ", heal_amount, " HP")
+
+func _use_stat_boost(stat: String):
+	_show_battle_text("Du verwendest " + battle_inventory_items[current_inventory_index].name + "!\n\nFRIEDER's " + stat.capitalize() + " steigt!")
+	
+	# Add status effect
+	_add_status_effect(true, stat + "_hoch", 5)
+	
+	print("Player stat boosted: ", stat)
+
+func _on_battle_inventory_closed():
+	_close_battle_inventory()
+	print("Battle inventory closed")
+
+func _on_battle_item_selected(item_id: String, target_character: String):
+	# Handle item usage in battle
+	print("Item selected: ", item_id, " for target: ", target_character)
+	
+	# Get inventory manager to use the item
+	var inventory_manager = get_node_or_null("/root/InventoryManager")
+	if inventory_manager:
+		# Use the item
+		var success = inventory_manager.use_item(item_id, target_character)
+		if success:
+			_show_battle_text("Du hast " + item_id + " verwendet!")
+			# Player used item, show command box again
+			command_box.visible = true
+		else:
+			_show_battle_text("Item konnte nicht verwendet werden.")
+	else:
+		_show_battle_text("Inventory system nicht gefunden.")
 
 func _show_attack_menu():
 	# Hide command box and show attack menu
@@ -1299,23 +1471,23 @@ func _create_status_badge(container: HBoxContainer, effect_name: String):
 func _get_status_german_name(effect_name: String) -> String:
 	match effect_name:
 		"betrunken":
-			return "DRUNK"
+			return "BETRUNKEN"
 		"verwirrt":
-			return "CONF"
+			return "VERWIRRT"
 		"müde":
-			return "SLEEP"
+			return "MÜDE"
 		"wütend":
-			return "ANGRY"
+			return "WÜTEND"
 		"angriff_hoch":
-			return "ATK+"
+			return "ANGRIFF+"
 		"verteidigung_hoch":
-			return "DEF+"
+			return "VERTEIDIGUNG+"
 		"vergiftet":
-			return "POISON"
+			return "VERGIFTET"
 		"verbrannt":
-			return "BURN"
+			return "VERBRANNT"
 		"gelähmt":
-			return "PARA"
+			return "GELÄHMT"
 		_:
 			return "?"
 
@@ -1491,16 +1663,32 @@ func _select_attack(attack_index: int):
 		_execute_attack(selected_attack, true) # true = player attack
 
 func _show_battle_text(text: String):
-	battle_text.text = text
+	battle_text.text = text + "\n\n(Drücke SPACE zum Fortfahren)"
 	battle_text_box.visible = true
 	command_box.visible = false
 	attack_menu.visible = false
 	attack_menu_active = false
 	
-	# Auto-switch back to commands after a delay
-	await get_tree().create_timer(2.0).timeout
+	# Auto-switch back to commands after a delay (can be interrupted by input)
+	await get_tree().create_timer(5.0).timeout
+	if battle_text_box.visible:  # Only dismiss if still visible
+		_dismiss_battle_text()
+
+func _dismiss_battle_text():
+	"""Dismiss the battle text dialog."""
 	battle_text_box.visible = false
-	command_box.visible = true
+	if current_phase == BattlePhase.PLAYER_TURN:
+		command_box.visible = true
+		_update_button_selection()  # Reset button selection
+
+func _continue_intro():
+	"""Continue through the intro sequence."""
+	if current_phase == BattlePhase.INTRO:
+		# Switch to player turn
+		current_phase = BattlePhase.PLAYER_TURN
+		battle_text_box.visible = false
+		command_box.visible = true
+		_update_button_selection()
 
 # ============================================================================
 # ATTACK EXECUTION SYSTEM

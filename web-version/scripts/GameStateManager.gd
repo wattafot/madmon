@@ -93,6 +93,9 @@ func change_state(new_state: GameState):
 	# Emit signal
 	state_changed.emit(old_state, new_state)
 	
+	# Emit EventBus event for systems that listen to it
+	EventBus.emit_safe("game_state_changed", [old_state, new_state])
+	
 	print("State changed from ", GameState.keys()[old_state], " to ", GameState.keys()[new_state])
 
 func _exit_state(state: GameState):
@@ -161,6 +164,17 @@ func _exit_battle():
 	pass
 
 # Input handling for different contexts
+func _input(event):
+	if not event.is_pressed():
+		return
+	
+	# Debug: print("GameStateManager: Input event received: ", event, " Context: ", InputContext.keys()[current_input_context])
+		
+	# Only handle dialog input in _input, let everything else go to _unhandled_input
+	if current_input_context == InputContext.DIALOGUE:
+		_handle_dialogue_input(event)
+		get_viewport().set_input_as_handled()
+
 func _unhandled_input(event):
 	if not event.is_pressed():
 		return
@@ -168,21 +182,24 @@ func _unhandled_input(event):
 	match current_input_context:
 		InputContext.EXPLORATION:
 			_handle_exploration_input(event)
-		InputContext.DIALOGUE:
-			_handle_dialogue_input(event)
 		InputContext.MENU_NAVIGATION:
 			_handle_menu_navigation_input(event)
 		InputContext.BATTLE:
-			_handle_battle_input(event)
+			# Let BattleManager handle battle input directly
+			pass
 
 func _handle_exploration_input(event):
 	# Exploration input is handled by the player directly
 	pass
 
 func _handle_dialogue_input(event):
-	if event.is_action_pressed("ui_accept"):
+	# Check both action and direct keycodes for reliability
+	var is_accept = event.is_action_pressed("ui_accept") or (event is InputEventKey and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER))
+	
+	if is_accept:
 		# Progress multi-stage dialogue
 		if current_state == GameState.DIALOGUE:
+			# Debug: print("Dialog input received, advancing dialog...")
 			if dialogue_lines.size() > 0 and current_dialogue_index < dialogue_lines.size() - 1:
 				# Special handling for dramatic pause in Benedikt dialogue
 				if current_dialogue_index == 2 and dialogue_lines[2].contains("Tüte, Tüte..."):

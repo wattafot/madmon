@@ -1,3 +1,4 @@
+class_name StatusEffectIndicator
 extends Control
 
 # StatusEffectIndicator - Visual indicators for battle status effects
